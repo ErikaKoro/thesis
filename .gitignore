@@ -1,0 +1,7 @@
+.devcontainer/
+.vscode/
+build/
+components/arduino/*
+managed_components/
+report/
+dependencies.lock
