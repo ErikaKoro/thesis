@@ -6,6 +6,7 @@
 #include "LAB2/photoresistor.hpp"
 #include "LAB1/lab_1.hpp"
 #include "DIP_SWITCH/dip_switch.hpp"
+#include "LAB3/power_meter.hpp"
 
 extern "C"{
     #include "freertos/FreeRTOS.h"
@@ -22,10 +23,10 @@ extern "C"{
 
 // Enumeration that contains all possible modes of the DIP SWITCH
 enum mode{
-    LAB1 = 0,
-    LAB2 = 1,
-    LAB3 = 2,
-    BUZZER = 3
+    LAB1 = 0,   // 0 0 on the DIP SWITCH
+    LAB2 = 1,   // 0 1 on the DIP SWITCH
+    LAB3 = 2,   // 1 0 on the DIP SWITCH
+    BUZZER = 3  // 1 1 on the DIP SWITCH
 };
 
 
@@ -128,8 +129,6 @@ extern "C" void app_main(void) {
         ADC_BITWIDTH
     );
 
-
-
     // ABOUT EXTERNAL ADC
     // INIT EXTERNAL ADC
     external_adc_t mcp;
@@ -142,7 +141,6 @@ extern "C" void app_main(void) {
     // ACTIVATE BUZZER
     notes fur_elise_notes;
     fur_elise_notes = fur_elise();    
-
 
 
     // ABOUT PHOTO RESISTOR
@@ -164,6 +162,43 @@ extern "C" void app_main(void) {
         ADC_UNIT,
         ADC_BITWIDTH
     );
+
+
+    // ABOUT LAB 3
+    powerMes powerMes;
+    powerMes.activePower = 0;
+    powerMes.apparentPower = 0;
+    powerMes.powerFactor = 0;
+
+    Serial.println("Before stack overflow");
+
+    powerArrays powerArrays;
+    powerArrays.aRms = 0;
+    powerArrays.vRms = 0;
+
+    powerArrays.vCalibrated = (double *)malloc(nSamples * sizeof(double));
+    powerArrays.cCalibrated = (double *)malloc(nSamples * sizeof(double));
+
+    Serial.println("After stack overflow");
+
+    // pinMode(vPin, INPUT);
+    // pinMode(iPin, INPUT);
+
+    // ADC_CHANNEL_1 of ADC_UNIT_1 is pin 37
+    int lab3_channel_voltage = set_oneshot_channel(adc1_handle, ADC_CHANNEL_1, ADC_ATTEN, ADC_BITWIDTH);
+
+    if(lab3_channel_voltage != 0){
+        Serial.println("Error configuring ADC voltage channel for LAB 3");
+        return;
+    }
+
+    // ADC_CHANNEL_2 of ADC_UNIT_1 is pin 38
+    int lab3_channel_current = set_oneshot_channel(adc1_handle, ADC_CHANNEL_2, ADC_ATTEN, ADC_BITWIDTH);
+
+    if(lab3_channel_current != 0){
+        Serial.println("Error configuring ADC current channel for LAB 3");
+        return;
+    }
 
     gpio_isr_handler(0);
 
@@ -223,6 +258,17 @@ extern "C" void app_main(void) {
 
                 Serial.println("LAB 3 mode");
 
+                powerMes = power_meter(&powerArrays, adc1_handle);
+
+                Serial.println("Voltage RMS: " + String(powerArrays.vRms) + " V");
+                Serial.println("Current RMS: " + String(powerArrays.aRms) + " A");
+                Serial.println("Active Power: " + String(powerMes.activePower) + " W");
+                Serial.println("Apparent Power: " + String(powerMes.apparentPower) + " VA");
+                Serial.println("Power Factor: " + String(powerMes.powerFactor) + " ");
+                Serial.println();
+
+                delay(1000);
+
             }break;
 
             case BUZZER: {
@@ -256,4 +302,7 @@ extern "C" void app_main(void) {
     adc_cali_delete_scheme_line_fitting(lab1_calibration.cali_handle);
     adc_cali_delete_scheme_line_fitting(calibration.cali_handle);
     adc_cali_delete_scheme_line_fitting(photo_calibration.cali_handle);
+
+    free(powerArrays.vCalibrated);
+    free(powerArrays.cCalibrated);
 }
