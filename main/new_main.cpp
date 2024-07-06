@@ -7,6 +7,7 @@
 #include "LAB1/lab_1.hpp"
 #include "DIP_SWITCH/dip_switch.hpp"
 #include "LAB3/power_meter.hpp"
+#include "LCD/lcd_espi.hpp"
 
 extern "C"{
     #include "freertos/FreeRTOS.h"
@@ -66,6 +67,13 @@ extern "C" void app_main(void) {
     while(!Serial){
         ; // wait for serial port to connect
     }
+
+    setup_display();
+
+    for (int i = 0; i < 320; i++) {
+        test();
+    }
+    
 
     // ABOUT DIP SWITCH
     init_dip_switch();
@@ -215,6 +223,8 @@ extern "C" void app_main(void) {
                     lab1_calibration
                 );
 
+                // fillLab1();
+
                 Serial.println("LAB 1 Raw: " + String(lab1_measurement.raw) + " ");
                 Serial.println("LAB 1 Voltage: " + String(lab1_measurement.voltage) + " mV");
                 Serial.println();
@@ -224,6 +234,7 @@ extern "C" void app_main(void) {
 
             case LAB2: {
 
+                Serial.println("LAB 2 mode");
                 // INTERNAL ADC
                 measurement = read_calibrate(
                     ADC1_CHAN7,
@@ -231,15 +242,15 @@ extern "C" void app_main(void) {
                     calibration
                 );
 
-                Serial.println("Raw: " + String(measurement.raw) + " ");
-                Serial.println("Voltage: " + String(measurement.voltage) + " mV");
-                Serial.println();
-                Serial.println();
+                // Serial.println("Raw: " + String(measurement.raw) + " ");
+                // Serial.println("Voltage: " + String(measurement.voltage) + " mV");
+                // Serial.println();
+                // Serial.println();
 
 
-                // EXTERNAL ADC
-                Serial.println("EXTERNAL ADC");
-                print_external_adc(&mcp);
+                // // EXTERNAL ADC
+                // Serial.println("EXTERNAL ADC");
+                // print_external_adc(&mcp);
 
 
                 // PHOTORESISTOR
@@ -248,9 +259,12 @@ extern "C" void app_main(void) {
                     adc1_handle,
                     photo_calibration
                 );
-                Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
+
+                // fillLab2();
+
+                // Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
                 int photo_resistance = volt_to_resistance(photores_measurement.voltage);
-                Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
+                // Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
 
             }break;
 
@@ -259,6 +273,8 @@ extern "C" void app_main(void) {
                 Serial.println("LAB 3 mode");
 
                 powerMes = power_meter(&powerArrays, adc1_handle);
+
+                // fillLab3();
 
                 Serial.println("Voltage RMS: " + String(powerArrays.vRms) + " V");
                 Serial.println("Current RMS: " + String(powerArrays.aRms) + " A");

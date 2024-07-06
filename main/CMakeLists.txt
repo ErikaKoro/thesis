@@ -22,6 +22,7 @@ idf_component_register(SRCS "new_main.cpp"
                             "LAB1/lab_1.cpp"
                             "DIP_SWITCH/dip_switch.cpp"
                             "LAB3/power_meter.cpp"
+                            "LCD/lcd_espi.cpp"
                        INCLUDE_DIRS ".")
 
 # idf_component_register(SRCS "lcd_main.cpp"
