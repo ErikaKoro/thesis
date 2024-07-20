@@ -6,6 +6,8 @@
 
 typedef struct{
     MCP3004 adc;
+    int mcp_data;
+    int mcp_voltage;
 } external_adc_t;
 
 void init_external_adc(external_adc_t *mcp);

@@ -9,17 +9,20 @@
 #include "LAB3/power_meter.hpp"
 #include "LCD/lcd_espi.hpp"
 
+
 extern "C"{
     #include "freertos/FreeRTOS.h"
     #include "freertos/task.h"
     #include "freertos/queue.h"
     #include "driver/gpio.h"
+    
 }
 
 
 #define UNIT_1                 ADC_UNIT_1 
 #define ADC_ATTEN              ADC_ATTEN_DB_11
 #define ESP_INTR_FLAG_DEFAULT  0
+
 
 
 // Enumeration that contains all possible modes of the DIP SWITCH
@@ -68,13 +71,6 @@ extern "C" void app_main(void) {
         ; // wait for serial port to connect
     }
 
-    setup_display();
-
-    for (int i = 0; i < 320; i++) {
-        test();
-    }
-    
-
     // ABOUT DIP SWITCH
     init_dip_switch();
 
@@ -86,7 +82,6 @@ extern "C" void app_main(void) {
     gpio_isr_handler_add(DIP_SWITCH_PIN_1, gpio_isr_handler, (void*) DIP_SWITCH_PIN_1);
     gpio_isr_handler_add(DIP_SWITCH_PIN_2, gpio_isr_handler, (void*) DIP_SWITCH_PIN_2);
 
-
     // ABOUT ADC
     // init the ADC instance for unit 1 for sampling
     adc_oneshot_unit_handle_t adc1_handle;
@@ -96,8 +91,6 @@ extern "C" void app_main(void) {
         Serial.println("Error creating ADC instance");
         return;
     }  
-
-
 
     // ABOUT LAB 1
     int lab1_channel_ok = set_oneshot_channel(adc1_handle, LAB_1_PIN, ADC_ATTEN, ADC_BITWIDTH);
@@ -116,8 +109,6 @@ extern "C" void app_main(void) {
         ADC_BITWIDTH
     );
     measurement_t lab1_measurement;
-
-
 
     // ABOUT LAB 2
     // configure the ADC channel
@@ -140,10 +131,10 @@ extern "C" void app_main(void) {
     // ABOUT EXTERNAL ADC
     // INIT EXTERNAL ADC
     external_adc_t mcp;
+    mcp.mcp_data = 0;
+    mcp.mcp_voltage = 0;
     init_external_adc(&mcp);
     measurement_t measurement;
-
-
 
     // ABOUT BUZZER
     // ACTIVATE BUZZER
@@ -178,16 +169,12 @@ extern "C" void app_main(void) {
     powerMes.apparentPower = 0;
     powerMes.powerFactor = 0;
 
-    Serial.println("Before stack overflow");
-
     powerArrays powerArrays;
     powerArrays.aRms = 0;
     powerArrays.vRms = 0;
 
     powerArrays.vCalibrated = (double *)malloc(nSamples * sizeof(double));
     powerArrays.cCalibrated = (double *)malloc(nSamples * sizeof(double));
-
-    Serial.println("After stack overflow");
 
     // pinMode(vPin, INPUT);
     // pinMode(iPin, INPUT);
@@ -210,11 +197,23 @@ extern "C" void app_main(void) {
 
     gpio_isr_handler(0);
 
+    boolean first_lab_1 = true;
+    boolean first_lab_2 = true;
+    boolean first_lab_3 = true;
+    sprites spr_2;
+
     while(true){
 
         switch(current_mode){
 
             case LAB1: {
+
+                if(first_lab_1 || !first_lab_2){
+                    setup_display_lab1(&spr_2);
+                    init_lab1(&spr_2);
+                    first_lab_1 = false;
+                    first_lab_2 = true;
+                }
 
                 // LAB 1 measurements
                 lab1_measurement = read_calibrate(
@@ -223,34 +222,58 @@ extern "C" void app_main(void) {
                     lab1_calibration
                 );
 
-                // fillLab1();
+                // fill all sprites with black to erase previous data
+                spr_2.raw.fillSprite(TFT_BLACK);
+                spr_2.voltage.fillSprite(TFT_BLACK);
+                spr_2.mcp.fillSprite(TFT_BLACK);
+                spr_2.mcp_vol.fillSprite(TFT_BLACK);
 
-                Serial.println("LAB 1 Raw: " + String(lab1_measurement.raw) + " ");
-                Serial.println("LAB 1 Voltage: " + String(lab1_measurement.voltage) + " mV");
-                Serial.println();
-                Serial.println();
+                // adc raw and calibrated voltage
+                spr_2.raw.drawString(String(lab1_measurement.raw), 2, 0);
+                spr_2.voltage.drawString(String(lab1_measurement.voltage) + " mV", 2, 0);
+
+                spr_2.raw.pushSprite(spr_2.start_pixel, 60);
+                spr_2.voltage.pushSprite(spr_2.start_pixel, 110);
 
             }break;
 
             case LAB2: {
 
-                Serial.println("LAB 2 mode");
+                if(first_lab_2 || !first_lab_1){
+                    setup_display_lab2(&spr_2);
+                    init_lab2(&spr_2);
+                    first_lab_2 = false;
+                    first_lab_1 = true;
+                }
+
                 // INTERNAL ADC
                 measurement = read_calibrate(
                     ADC1_CHAN7,
                     adc1_handle,
                     calibration
                 );
+                
+                // fill all sprites with black to erase previous data
+                spr_2.raw.fillSprite(TFT_BLACK);
+                spr_2.voltage.fillSprite(TFT_BLACK);
+                spr_2.mcp.fillSprite(TFT_BLACK);
+                spr_2.mcp_vol.fillSprite(TFT_BLACK);
 
-                // Serial.println("Raw: " + String(measurement.raw) + " ");
-                // Serial.println("Voltage: " + String(measurement.voltage) + " mV");
-                // Serial.println();
-                // Serial.println();
+                // adc raw and calibrated voltage
+                spr_2.raw.drawString(String(measurement.raw), 2, 0);
+                spr_2.voltage.drawString(String(measurement.voltage) + " mV", 2, 0);
 
+                // EXTERNAL ADC
+                print_external_adc(&mcp);
 
-                // // EXTERNAL ADC
-                // Serial.println("EXTERNAL ADC");
-                // print_external_adc(&mcp);
+                // MCP data and voltage
+                spr_2.mcp.drawString(String(mcp.mcp_data), 2, 0);
+                spr_2.mcp_vol.drawString(String(mcp.mcp_voltage) + " mV", 2, 0);
+
+                spr_2.raw.pushSprite(spr_2.start_pixel, 60);
+                spr_2.voltage.pushSprite(spr_2.start_pixel, 110);
+                spr_2.mcp.pushSprite(spr_2.start_pixel, 160);
+                spr_2.mcp_vol.pushSprite(spr_2.start_pixel, 210);
 
 
                 // PHOTORESISTOR
@@ -259,8 +282,6 @@ extern "C" void app_main(void) {
                     adc1_handle,
                     photo_calibration
                 );
-
-                // fillLab2();
 
                 // Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
                 int photo_resistance = volt_to_resistance(photores_measurement.voltage);
@@ -299,7 +320,7 @@ extern "C" void app_main(void) {
             }break;
         }
         
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
     }
 
