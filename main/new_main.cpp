@@ -25,13 +25,13 @@ extern "C"{
 
 
 
-// Enumeration that contains all possible modes of the DIP SWITCH
-enum mode{
-    LAB1 = 0,   // 0 0 on the DIP SWITCH
-    LAB2 = 1,   // 0 1 on the DIP SWITCH
-    LAB3 = 2,   // 1 0 on the DIP SWITCH
-    BUZZER = 3  // 1 1 on the DIP SWITCH
-};
+// // Enumeration that contains all possible modes of the DIP SWITCH
+// enum mode{
+//     LAB1 = 0,   // 0 0 on the DIP SWITCH
+//     LAB2 = 1,   // 0 1 on the DIP SWITCH
+//     LAB3 = 2,   // 1 0 on the DIP SWITCH
+//     BUZZER = 3  // 1 1 on the DIP SWITCH
+// };
 
 
 // Flag that confirms the current mode of the DIP SWITCH
@@ -208,11 +208,12 @@ extern "C" void app_main(void) {
 
             case LAB1: {
 
-                if(first_lab_1 || !first_lab_2){
-                    setup_display_lab1(&spr_2);
-                    init_lab1(&spr_2);
+                if(first_lab_1 || !first_lab_2 || !first_lab_3){
+                    setup_display(&spr_2, "Volt: ", current_mode);
+                    init_lab(&spr_2, current_mode, "Lab 1: ");
                     first_lab_1 = false;
                     first_lab_2 = true;
+                    first_lab_3 = true;
                 }
 
                 // LAB 1 measurements
@@ -239,11 +240,12 @@ extern "C" void app_main(void) {
 
             case LAB2: {
 
-                if(first_lab_2 || !first_lab_1){
-                    setup_display_lab2(&spr_2);
-                    init_lab2(&spr_2);
+                if(first_lab_2 || !first_lab_1 || !first_lab_3){
+                    setup_display(&spr_2, "MCP Volt: ", current_mode);
+                    init_lab(&spr_2, current_mode, "Lab 2: ");
                     first_lab_2 = false;
                     first_lab_1 = true;
+                    first_lab_3 = true;
                 }
 
                 // INTERNAL ADC
@@ -264,6 +266,7 @@ extern "C" void app_main(void) {
                 spr_2.voltage.drawString(String(measurement.voltage) + " mV", 2, 0);
 
                 // EXTERNAL ADC
+                // update measurements
                 print_external_adc(&mcp);
 
                 // MCP data and voltage
@@ -291,18 +294,32 @@ extern "C" void app_main(void) {
 
             case LAB3: {
 
-                Serial.println("LAB 3 mode");
+                if(first_lab_3 || !first_lab_2 || !first_lab_1){
+                    setup_display_lab3(&spr_2);
+                    init_lab(&spr_2, current_mode, "Lab 3: ");
+                    first_lab_3 = false;
+                    first_lab_2 = true;
+                    first_lab_1 = true;
+                }
 
                 powerMes = power_meter(&powerArrays, adc1_handle);
 
-                // fillLab3();
+                spr_2.rms.fillSprite(TFT_BLACK);
+                spr_2.active.fillSprite(TFT_BLACK);
+                spr_2.apparent.fillSprite(TFT_BLACK);
+                spr_2.factor.fillSprite(TFT_BLACK);
 
-                Serial.println("Voltage RMS: " + String(powerArrays.vRms) + " V");
-                Serial.println("Current RMS: " + String(powerArrays.aRms) + " A");
-                Serial.println("Active Power: " + String(powerMes.activePower) + " W");
-                Serial.println("Apparent Power: " + String(powerMes.apparentPower) + " VA");
-                Serial.println("Power Factor: " + String(powerMes.powerFactor) + " ");
-                Serial.println();
+                spr_2.rms.drawString(String(powerArrays.vRms) + String(powerArrays.aRms), 2, 0);
+                spr_2.active.drawString(String(powerMes.activePower) + " W", 2, 0);
+                spr_2.apparent.drawString(String(powerMes.apparentPower) + " VA", 2, 0);
+                spr_2.factor.drawString(String(powerMes.powerFactor), 2, 0);
+
+                // Serial.println("Voltage RMS: " + String(powerArrays.vRms) + " V");
+                // Serial.println("Current RMS: " + String(powerArrays.aRms) + " A");
+                // Serial.println("Active Power: " + String(powerMes.activePower) + " W");
+                // Serial.println("Apparent Power: " + String(powerMes.apparentPower) + " VA");
+                // Serial.println("Power Factor: " + String(powerMes.powerFactor) + " ");
+                // Serial.println();
 
                 delay(1000);
 
