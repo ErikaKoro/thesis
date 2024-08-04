@@ -180,7 +180,7 @@ extern "C" void app_main(void) {
     // pinMode(iPin, INPUT);
 
     // ADC_CHANNEL_1 of ADC_UNIT_1 is pin 37
-    int lab3_channel_voltage = set_oneshot_channel(adc1_handle, ADC_CHANNEL_1, ADC_ATTEN, ADC_BITWIDTH);
+    int lab3_channel_voltage = set_oneshot_channel(adc1_handle, vPin, ADC_ATTEN, ADC_BITWIDTH);
 
     if(lab3_channel_voltage != 0){
         Serial.println("Error configuring ADC voltage channel for LAB 3");
@@ -188,7 +188,7 @@ extern "C" void app_main(void) {
     }
 
     // ADC_CHANNEL_2 of ADC_UNIT_1 is pin 38
-    int lab3_channel_current = set_oneshot_channel(adc1_handle, ADC_CHANNEL_2, ADC_ATTEN, ADC_BITWIDTH);
+    int lab3_channel_current = set_oneshot_channel(adc1_handle, iPin, ADC_ATTEN, ADC_BITWIDTH);
 
     if(lab3_channel_current != 0){
         Serial.println("Error configuring ADC current channel for LAB 3");
@@ -309,9 +309,9 @@ extern "C" void app_main(void) {
                 spr_2.apparent.fillSprite(TFT_BLACK);
                 spr_2.factor.fillSprite(TFT_BLACK);
 
-                spr_2.rms.drawString(String(powerArrays.vRms) + String(powerArrays.aRms), 2, 0);
-                spr_2.active.drawString(String(powerMes.activePower) + " W", 2, 0);
-                spr_2.apparent.drawString(String(powerMes.apparentPower) + " VA", 2, 0);
+                spr_2.rms.drawString(String(powerArrays.vRms), 0, 0);
+                spr_2.active.drawString(String(powerMes.activePower) + "W", 0, 0);
+                spr_2.apparent.drawString(String(powerMes.apparentPower) + "VA", 0, 0);
                 spr_2.factor.drawString(String(powerMes.powerFactor), 2, 0);
 
                 // Serial.println("Voltage RMS: " + String(powerArrays.vRms) + " V");
@@ -320,6 +320,12 @@ extern "C" void app_main(void) {
                 // Serial.println("Apparent Power: " + String(powerMes.apparentPower) + " VA");
                 // Serial.println("Power Factor: " + String(powerMes.powerFactor) + " ");
                 // Serial.println();
+
+                spr_2.rms.pushSprite(spr_2.start_pixel, 60);
+                spr_2.active.pushSprite(spr_2.start_pixel, 110);
+                spr_2.apparent.pushSprite(spr_2.start_pixel, 160);
+                spr_2.factor.pushSprite(spr_2.start_pixel, 210);
+    
 
                 delay(1000);
 

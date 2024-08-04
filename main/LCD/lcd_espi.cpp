@@ -58,7 +58,7 @@ void setup_display_lab3(sprites *spr_3){
         spr_3->tft.setTextSize(3);
     
         // how many pixels does the text occupy
-        int sprite_width = spr_3->tft.textWidth("Apparent Power: "); 
+        int sprite_width = spr_3->tft.textWidth("VRMS,CRMS: ");
         spr_3->start_pixel = sprite_width;
     
         // the remaining pixels are for the value
@@ -120,10 +120,10 @@ void init_lab(sprites *spr_2, mode current_mode, String header){
     }
 
     if(current_mode == LAB3){
-        spr_2->tft.drawString("VRMS , CRMS: ", 5, 60);
-        spr_2->tft.drawString("Active Power: ", 5, 110);
-        spr_2->tft.drawString("Apparent Power: ", 5, 160);
-        spr_2->tft.drawString("Power factor: ", 5, 210);
+        spr_2->tft.drawString("VRMS,CRMS: ", 5, 60);
+        spr_2->tft.drawString("Active: ", 5, 110);
+        spr_2->tft.drawString("Apparent: ", 5, 160);
+        spr_2->tft.drawString("P.factor: ", 5, 210);
     }
     
 
