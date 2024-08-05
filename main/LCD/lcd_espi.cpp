@@ -4,7 +4,7 @@
 /*
  * Calculates the sprites' dimensions and makes the sprites' configurations
 */
-void setup_display(sprites *spr_2, String header, mode current_mode) {
+void setup_display(sprites *spr_2, String header, mode current_mode){
 
     spr_2->tft.setTextSize(3);
 
@@ -124,10 +124,11 @@ void init_lab(sprites *spr_2, mode current_mode, String header){
         spr_2->tft.drawString("Active: ", 5, 110);
         spr_2->tft.drawString("Apparent: ", 5, 160);
         spr_2->tft.drawString("P.factor: ", 5, 210);
+    }    
+    if(current_mode == PHOTORES){
+        spr_2->tft.drawString("raw: ", 5, 60);
+        spr_2->tft.drawString("volt: ", 5, 110);
     }
-    
-
-        
 
 }
 

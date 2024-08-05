@@ -6,10 +6,11 @@
 
 // Enumeration that contains all possible modes of the DIP SWITCH
 enum mode{
-    LAB1 = 0,   // 0 0 on the DIP SWITCH
-    LAB2 = 1,   // 0 1 on the DIP SWITCH
-    LAB3 = 2,   // 1 0 on the DIP SWITCH
-    BUZZER = 3  // 1 1 on the DIP SWITCH
+    LAB1 = 0,   // 0 0 0 0 on the DIP SWITCH
+    LAB2 = 1,   // 0 1 0 0 on the DIP SWITCH
+    LAB3 = 2,   // 1 0 0 0 on the DIP SWITCH
+    PHOTORES = 3,  // 1 1 0 0 on the DIP SWITCH
+    BUZZER = 4, // 1 1 1 1 on the DIP SWITCH
 };
 
 

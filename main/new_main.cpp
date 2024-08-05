@@ -44,21 +44,25 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
 
     int level_pin_1 = gpio_get_level(DIP_SWITCH_PIN_1);
     int level_pin_2 = gpio_get_level(DIP_SWITCH_PIN_2);
+    int level_pin_3 = gpio_get_level(DIP_SWITCH_PIN_3);
+    int level_pin_4 = gpio_get_level(DIP_SWITCH_PIN_4);
 
-    if(level_pin_1 == 0 && level_pin_2 == 0){
+    if(level_pin_1 == 0 && level_pin_2 == 0 && level_pin_3 == 0 && level_pin_4 == 0){
         current_mode = BUZZER;
 
-    }else if(level_pin_1 == 0 && level_pin_2 == 1){
+    }else if(level_pin_1 == 0 && level_pin_2 == 1 && level_pin_3 == 1 && level_pin_4 == 1){
         current_mode = LAB3;
 
-    }else if(level_pin_1 == 1 && level_pin_2 == 0){
+    }else if(level_pin_1 == 1 && level_pin_2 == 0 && level_pin_3 == 1 && level_pin_4 == 1){
         current_mode = LAB2;
     
-    }else if(level_pin_1 == 1 && level_pin_2 == 1){
+    }else if(level_pin_1 == 1 && level_pin_2 == 1 && level_pin_3 == 1 && level_pin_4 == 1){
         current_mode = LAB1;
     }
+    else if(level_pin_1 == 0 && level_pin_2 == 0 && level_pin_3 == 1 && level_pin_4 == 1){
+        current_mode = PHOTORES;
+    }
 }
-
 
 
 extern "C" void app_main(void) {
@@ -81,6 +85,8 @@ extern "C" void app_main(void) {
     // hook isr handler for specific gpio pin
     gpio_isr_handler_add(DIP_SWITCH_PIN_1, gpio_isr_handler, (void*) DIP_SWITCH_PIN_1);
     gpio_isr_handler_add(DIP_SWITCH_PIN_2, gpio_isr_handler, (void*) DIP_SWITCH_PIN_2);
+    gpio_isr_handler_add(DIP_SWITCH_PIN_3, gpio_isr_handler, (void*) DIP_SWITCH_PIN_3);
+    gpio_isr_handler_add(DIP_SWITCH_PIN_4, gpio_isr_handler, (void*) DIP_SWITCH_PIN_4);
 
     // ABOUT ADC
     // init the ADC instance for unit 1 for sampling
@@ -200,6 +206,7 @@ extern "C" void app_main(void) {
     boolean first_lab_1 = true;
     boolean first_lab_2 = true;
     boolean first_lab_3 = true;
+    boolean first_photores = true;
     sprites spr_2;
 
     while(true){
@@ -240,6 +247,10 @@ extern "C" void app_main(void) {
 
             case LAB2: {
 
+                // Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
+                
+                // Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
+
                 if(first_lab_2 || !first_lab_1 || !first_lab_3){
                     setup_display(&spr_2, "MCP Volt: ", current_mode);
                     init_lab(&spr_2, current_mode, "Lab 2: ");
@@ -278,6 +289,18 @@ extern "C" void app_main(void) {
                 spr_2.mcp.pushSprite(spr_2.start_pixel, 160);
                 spr_2.mcp_vol.pushSprite(spr_2.start_pixel, 210);
 
+            }break;
+
+            case PHOTORES: {
+
+                if(first_photores || !first_lab_2 || !first_lab_1 || !first_lab_3){
+                    setup_display(&spr_2, "volt: ", current_mode);
+                    init_lab(&spr_2, current_mode, "Lab2 Photoresistor");
+                    first_photores = false;
+                    first_lab_2 = true;
+                    first_lab_1 = true;
+                    first_lab_3 = true;
+                }
 
                 // PHOTORESISTOR
                 photores_measurement = read_calibrate(
@@ -286,10 +309,18 @@ extern "C" void app_main(void) {
                     photo_calibration
                 );
 
-                // Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
                 int photo_resistance = volt_to_resistance(photores_measurement.voltage);
-                // Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
 
+                // fill all sprites with black to erase previous data
+                spr_2.raw.fillSprite(TFT_BLACK);
+                spr_2.voltage.fillSprite(TFT_BLACK);
+
+                spr_2.raw.drawString(String(photores_measurement.raw), 2, 0);
+                spr_2.voltage.drawString(String(photores_measurement.voltage) + " mV", 2, 0);
+
+                spr_2.raw.pushSprite(spr_2.start_pixel, 60);
+                spr_2.voltage.pushSprite(spr_2.start_pixel, 110);
+                    
             }break;
 
             case LAB3: {
@@ -331,12 +362,12 @@ extern "C" void app_main(void) {
 
             }break;
 
-            case BUZZER: {
+            // case BUZZER: {
 
-                // BUZZER
-                setBuzzer(fur_elise_notes);
+            //     // BUZZER
+            //     setBuzzer(fur_elise_notes);
 
-            }break;
+            // }break;
 
             default: {
                 Serial.println("Invalid mode");
