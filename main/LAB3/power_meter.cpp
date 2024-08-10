@@ -43,7 +43,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     // Serial.println("Voltage: " + String(measure));
 
-    // The voltage signal has a decimal offset of 1885 that corresponds to 0V. When the voltage signal is around 0V, ADC samples.
+    // The voltage signal has a decimal offset of 1885 that corresponds to 0V. Read the voltage pin until the measurement equals to the offset value.
     while(measure > 1900 || measure < 1850){
         adc_oneshot_read(adc1_handle, vPin, &measure);
         // measure = analogRead(vPin);
@@ -53,6 +53,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
     int current;
     double power;
 
+    // When the voltage value is equal to the offset, start sampling the voltage and current signals.
     for (int i = 0; i < nSamples; i++){
         start = micros();
 

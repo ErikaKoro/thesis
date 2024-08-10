@@ -8,6 +8,7 @@
 #include "DIP_SWITCH/dip_switch.hpp"
 #include "LAB3/power_meter.hpp"
 #include "LCD/lcd_espi.hpp"
+#include "LCD/waveform.hpp"
 
 
 extern "C"{
@@ -34,7 +35,7 @@ extern "C"{
 // };
 
 
-// Flag that confirms the current mode of the DIP SWITCH
+// The current mode of the DIP SWITCH
 static enum mode current_mode = LAB1;
 
 
@@ -61,6 +62,9 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
     }
     else if(level_pin_1 == 0 && level_pin_2 == 0 && level_pin_3 == 1 && level_pin_4 == 1){
         current_mode = PHOTORES;
+    }
+    else if(level_pin_1 == 0 && level_pin_2 == 1 && level_pin_3 == 0 && level_pin_4 == 0){
+        current_mode = WAVEFORM;
     }
 }
 
@@ -111,7 +115,7 @@ extern "C" void app_main(void) {
     lab1_calibration = init_calib(
         LAB_1_PIN,
         ADC_ATTEN,
-        ADC_UNIT,
+        UNIT_1,
         ADC_BITWIDTH
     );
     measurement_t lab1_measurement;
@@ -130,7 +134,7 @@ extern "C" void app_main(void) {
     calibration = init_calib(
         ADC1_CHAN7,
         ADC_ATTEN,
-        ADC_UNIT,
+        UNIT_1,
         ADC_BITWIDTH
     );
 
@@ -164,7 +168,7 @@ extern "C" void app_main(void) {
     photo_calibration = init_calib(
         PIN36,
         ADC_ATTEN,
-        ADC_UNIT,
+        UNIT_1,
         ADC_BITWIDTH
     );
 
@@ -207,6 +211,7 @@ extern "C" void app_main(void) {
     boolean first_lab_2 = true;
     boolean first_lab_3 = true;
     boolean first_photores = true;
+    boolean first_waveform = true;
     sprites spr_2;
 
     while(true){
@@ -215,12 +220,40 @@ extern "C" void app_main(void) {
 
             case LAB1: {
 
-                if(first_lab_1 || !first_lab_2 || !first_lab_3){
+                if(first_lab_1 || !first_lab_2 || !first_lab_3 || !first_photores || !first_waveform){
+                    
+                    if(!first_lab_2){
+
+                        // delete previous sprites
+                        spr_2.mcp_vol.deleteSprite();
+                        spr_2.mcp.deleteSprite();
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_lab_3){
+                        // delete previous sprites
+                        spr_2.rms.deleteSprite();
+                        spr_2.active.deleteSprite();
+                        spr_2.apparent.deleteSprite();
+                        spr_2.factor.deleteSprite();
+                    }
+                    else if(!first_photores){
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_waveform){
+                        // delete previous sprites
+                        spr_2.waveform.deleteSprite();
+                    }
+
                     setup_display(&spr_2, "Volt: ", current_mode);
                     init_lab(&spr_2, current_mode, "Lab 1: ");
+                    first_photores = true;
                     first_lab_1 = false;
                     first_lab_2 = true;
                     first_lab_3 = true;
+                    first_waveform = true;
                 }
 
                 // LAB 1 measurements
@@ -233,8 +266,8 @@ extern "C" void app_main(void) {
                 // fill all sprites with black to erase previous data
                 spr_2.raw.fillSprite(TFT_BLACK);
                 spr_2.voltage.fillSprite(TFT_BLACK);
-                spr_2.mcp.fillSprite(TFT_BLACK);
-                spr_2.mcp_vol.fillSprite(TFT_BLACK);
+                // spr_2.mcp.fillSprite(TFT_BLACK);
+                // spr_2.mcp_vol.fillSprite(TFT_BLACK);
 
                 // adc raw and calibrated voltage
                 spr_2.raw.drawString(String(lab1_measurement.raw), 2, 0);
@@ -251,12 +284,38 @@ extern "C" void app_main(void) {
                 
                 // Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
 
-                if(first_lab_2 || !first_lab_1 || !first_lab_3){
+                if(first_lab_2 || !first_lab_1 || !first_lab_3 || !first_photores || !first_waveform){
+
+                    if(!first_lab_3){
+                        // delete previous sprites
+                        spr_2.rms.deleteSprite();
+                        spr_2.active.deleteSprite();
+                        spr_2.apparent.deleteSprite();
+                        spr_2.factor.deleteSprite();
+
+                    }
+                    else if(!first_lab_1){
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_photores){
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_waveform){
+                        // delete previous sprites
+                        spr_2.waveform.deleteSprite();
+                    }
+
                     setup_display(&spr_2, "MCP Volt: ", current_mode);
                     init_lab(&spr_2, current_mode, "Lab 2: ");
+                    first_photores = true;
                     first_lab_2 = false;
                     first_lab_1 = true;
                     first_lab_3 = true;
+                    first_waveform = true;
                 }
 
                 // INTERNAL ADC
@@ -293,13 +352,43 @@ extern "C" void app_main(void) {
 
             case PHOTORES: {
 
-                if(first_photores || !first_lab_2 || !first_lab_1 || !first_lab_3){
+                if(first_photores || !first_lab_2 || !first_lab_1 || !first_lab_3 || !first_waveform){
+
+                    if (!first_lab_1)
+                    {
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if (!first_lab_2)
+                    {
+                        // delete previous sprites
+                        spr_2.mcp_vol.deleteSprite();
+                        spr_2.mcp.deleteSprite();
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if (!first_lab_3)
+                    {
+                        // delete previous sprites
+                        spr_2.rms.deleteSprite();
+                        spr_2.active.deleteSprite();
+                        spr_2.apparent.deleteSprite();
+                        spr_2.factor.deleteSprite();
+                    }
+                    else if (!first_waveform)
+                    {
+                        // delete previous sprites
+                        spr_2.waveform.deleteSprite();
+                    }
+                    
                     setup_display(&spr_2, "volt: ", current_mode);
                     init_lab(&spr_2, current_mode, "Lab2 Photoresistor");
                     first_photores = false;
                     first_lab_2 = true;
                     first_lab_1 = true;
                     first_lab_3 = true;
+                    first_waveform = true;
                 }
 
                 // PHOTORESISTOR
@@ -325,12 +414,37 @@ extern "C" void app_main(void) {
 
             case LAB3: {
 
-                if(first_lab_3 || !first_lab_2 || !first_lab_1){
+                if(first_lab_3 || !first_lab_2 || !first_lab_1 || !first_photores || !first_waveform){
+
+                    if(!first_lab_2){
+                        // delete previous sprites
+                        spr_2.mcp_vol.deleteSprite();
+                        spr_2.mcp.deleteSprite();
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_lab_1){
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_photores){
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if(!first_waveform){
+                        // delete previous sprites
+                        spr_2.waveform.deleteSprite();
+                    }
+
                     setup_display_lab3(&spr_2);
                     init_lab(&spr_2, current_mode, "Lab 3: ");
+                    first_photores = true;
                     first_lab_3 = false;
                     first_lab_2 = true;
                     first_lab_1 = true;
+                    first_waveform = true;
                 }
 
                 powerMes = power_meter(&powerArrays, adc1_handle);
@@ -362,12 +476,58 @@ extern "C" void app_main(void) {
 
             }break;
 
-            // case BUZZER: {
+            case BUZZER: {
 
-            //     // BUZZER
-            //     setBuzzer(fur_elise_notes);
+                // BUZZER
+                setBuzzer(fur_elise_notes);
 
-            // }break;
+            }break;
+
+            case WAVEFORM: {
+
+                if (first_waveform || !first_lab_2 || !first_lab_1 || !first_lab_3 || !first_photores)
+                {
+                    if (!first_lab_2)
+                    {
+                        // delete previous sprites
+                        spr_2.mcp_vol.deleteSprite();
+                        spr_2.mcp.deleteSprite();
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if (!first_lab_1)
+                    {
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+                    else if (!first_lab_3)
+                    {
+                        // delete previous sprites
+                        spr_2.rms.deleteSprite();
+                        spr_2.active.deleteSprite();
+                        spr_2.apparent.deleteSprite();
+                        spr_2.factor.deleteSprite();
+                    }
+                    else if (!first_photores)
+                    {
+                        // delete previous sprites
+                        spr_2.voltage.deleteSprite();
+                        spr_2.raw.deleteSprite();
+                    }
+
+                    
+                    first_photores = true;
+                    first_lab_2 = true;
+                    first_lab_1 = true;
+                    first_lab_3 = true;
+                    first_waveform = false;
+                }
+                
+                
+            
+            
+            }break;
 
             default: {
                 Serial.println("Invalid mode");

@@ -11,6 +11,7 @@ enum mode{
     LAB3 = 2,   // 1 0 0 0 on the DIP SWITCH
     PHOTORES = 3,  // 1 1 0 0 on the DIP SWITCH
     BUZZER = 4, // 1 1 1 1 on the DIP SWITCH
+    WAVEFORM = 5 // 0 1 1 0 on the DIP SWITCH
 };
 
 
@@ -35,6 +36,9 @@ struct sprites{
     TFT_eSprite active = TFT_eSprite(&tft);
     TFT_eSprite apparent = TFT_eSprite(&tft);
     TFT_eSprite factor = TFT_eSprite(&tft);
+
+    // waveform sprite
+    TFT_eSprite waveform = TFT_eSprite(&tft);
 
     // the starting pixel is the end of the written text
     int start_pixel;
