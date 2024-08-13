@@ -62,7 +62,7 @@ void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
                            double gx, double gy, double w, double h,
                            double xlo, double xhi, double xinc,
                            double ylo, double yhi, double yinc,
-                           char *title, char *xlabel, char *ylabel,
+                           char *title, char *xlabel, char *ylabel, char *y2label,
                            bool &redraw, unsigned int color);
 
 
@@ -71,7 +71,7 @@ void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
            double w, double h,
            double xlo, double xhi, double xinc,
            double ylo, double yhi, double yinc,
-           char *title, char *xlabel, char *ylabel,
+           char *title, char *xlabel, char *ylabel, char *y2label,
            bool &update1, unsigned int color);
 
 void create_sprite_waveform(sprites *spr);

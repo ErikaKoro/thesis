@@ -10,6 +10,7 @@ extern "C"{
 }
 
 
+
 /**
  * 
  * @brief Function that converts the raw data from the ADC to voltage
@@ -43,10 +44,31 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     // Serial.println("Voltage: " + String(measure));
 
+    start = micros();
+
     // The voltage signal has a decimal offset of 1885 that corresponds to 0V. Read the voltage pin until the measurement equals to the offset value.
     while(measure > 1900 || measure < 1850){
         adc_oneshot_read(adc1_handle, vPin, &measure);
         // measure = analogRead(vPin);
+
+        stop = micros();
+
+        // handle the disconnected load so no watchdog reset is triggered
+        if (stop - start > 100000) {
+            Serial.println("Load disconnected");
+
+            for (int i = 0; i < nSamples; i++) {
+                powerArrays->vCalibrated[i] = 0;
+                powerArrays->cCalibrated[i] = 0;
+            }
+
+            powerMes.activePower = 0;
+            powerMes.apparentPower = 0;
+            powerMes.powerFactor = 0;
+            
+            return powerMes;
+        }
+        
     }
 
     int voltage;
@@ -74,7 +96,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
         stop = micros();
 
-        delayMicroseconds(250 - (stop - start));
+        delayMicroseconds(sample_time - (stop - start));
 
         // rate = analogRead(ratePint);
         // rate = map(rate, 0, 4096, 250, 20000);

@@ -57,7 +57,7 @@ void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
                            double gx, double gy, double w, double h,
                            double xlo, double xhi, double xinc,
                            double ylo, double yhi, double yinc,
-                           char *title, char *xlabel, char *ylabel,
+                           char *title, char *xlabel, char *ylabel, char *y2label,
                            bool &redraw, unsigned int color) {
 
     double ydiv, xdiv;
@@ -107,7 +107,13 @@ void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
             waveform->setTextColor(tcolor, bcolor);
             // precision is default Arduino--this could really use some format control
             waveform->drawFloat(i, dp, gx - 4, temp, 1);
-        }
+
+
+            waveform->setTextColor(tcolor, bcolor);
+            // precision is default Arduino--this could really use some format control
+            waveform->drawFloat(i / 20.0, 2, gx + w + 32, temp, 1);
+        }        
+
 
         // draw x scale
         for (i = xlo; i <= xhi; i += xinc) {
@@ -118,7 +124,13 @@ void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
                 waveform->drawLine(temp, gy, temp, gy - h, acolor);
                 waveform->setTextColor(acolor, bcolor);
                 waveform->setTextDatum(BC_DATUM);
-                waveform->drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
+                waveform->drawString(ylabel, (int)temp + 20, (int)(gy - h + 15) , 2);
+
+
+                waveform->drawLine(temp + w, gy, temp + w, gy - h, TFT_GREEN);
+                waveform->setTextColor(TFT_GREEN, bcolor);
+                waveform->setTextDatum(BC_DATUM);
+                waveform->drawString(y2label, (int)(temp + w - 15), (int)(gy - h + 15) , 2);
             }
             else {
                 waveform->drawLine(temp, gy, temp, gy - h, gcolor);
@@ -129,6 +141,13 @@ void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
             waveform->setTextDatum(TC_DATUM);
             // precision is default Arduino--this could really use some format control
             waveform->drawFloat(i, dp, temp, gy + 7, 1);
+
+
+            // waveform->setTextColor(tcolor, bcolor);
+            // waveform->setTextDatum(TC_DATUM);
+            // // precision is default Arduino--this could really use some format control
+            // waveform->drawFloat(i, dp, temp + w, gy + 7, 1);
+
         }
 
         //now draw the graph labels
@@ -156,7 +175,7 @@ void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
            double w, double h,
            double xlo, double xhi, double xinc,
            double ylo, double yhi, double yinc,
-           char *title, char *xlabel, char *ylabel,
+           char *title, char *xlabel, char *ylabel, char *y2label,
            bool &update1, unsigned int color)
 {
 
@@ -202,6 +221,10 @@ void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
       waveform->setTextColor(tcolor, bcolor);
       // precision is default Arduino--this could really use some format control
       waveform->drawFloat(i, dp, gx - 4, temp, 1);
+
+      waveform->setTextColor(tcolor, bcolor);
+      // precision is default Arduino--this could really use some format control
+      waveform->drawFloat(i / 20.0, 2, gx + w + 32, temp, 1);
     }
 
     // draw x scale
@@ -212,7 +235,12 @@ void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
       if (i == 0) {
         waveform->setTextColor(acolor, bcolor);
         waveform->setTextDatum(BC_DATUM);
-        waveform->drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
+        waveform->drawString(ylabel, (int)temp + 20, (int)(gy - h + 15) , 2);
+
+        waveform->drawLine(temp + w, gy, temp + w, gy - h, TFT_GREEN);
+        waveform->setTextColor(TFT_GREEN, bcolor);
+        waveform->setTextDatum(BC_DATUM);
+        waveform->drawString(y2label, (int)(temp + w - 15), (int)(gy - h + 15) , 2);
       }
 
       // draw the axis labels
@@ -265,5 +293,5 @@ void create_sprite_waveform(sprites *spr){
 
     display1 = true;
 
-    Graph(&(spr->waveform_background), 0, 0, 0, 25, 220, 270, 215, 0, 200, 40, -18, 18, 6, "", "", "", display1, YELLOW);
+    Graph(&(spr->waveform_background), 0, 0, 0, 25, 220, 260, 215, 0, 200, 40, -18, 18, 6, "", "", "", "", display1, YELLOW);
 }

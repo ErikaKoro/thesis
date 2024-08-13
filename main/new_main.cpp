@@ -221,6 +221,8 @@ extern "C" void app_main(void) {
     spr_2.tft.setRotation(1);
     spr_2.tft.fillScreen(TFT_BLACK);
 
+    int wave_samples = nSamples - 60;
+
     double test_amp = 17.0;
 
     while(true){
@@ -541,25 +543,47 @@ extern "C" void app_main(void) {
                 
                 powerMes = power_meter(&powerArrays, adc1_handle);
 
+                vTaskDelay(pdMS_TO_TICKS(5)); // 5ms delay to reset the watchdog timer
+
                 display1 = true;
-                Graph(&(spr_2.waveform_background), 0, 0, 0, 25, 220, 270, 215, 0, 100, 20, -23, 23, 6, "", "", "", display1, YELLOW);
+                Graph(&(spr_2.waveform_background), 0, 0, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", display1, YELLOW);
 
                 
                 spr_2.waveform.fillSprite(TFT_BLACK);
 
-                update1 = true;
-                for(int i = 0; i < 400; i++){
-                    // y = test_amp * sin(0.1 * PI * i * 0.250);
-
-                    Trace(&(spr_2.waveform), i * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 270, 215, 0, 100, 20, -18, 18, 6, "", "", "", update1, TFT_WHITE);    
-                }
+                // The power array is filled with the voltage values. Sometime the values start from the negative half of the sine wave and the graph is not displayed correctly. If this 
+                // happens, we plot the graph from 40 to 440 and the graph is displayed correctly.
                 
-                // update1 = true;
-                // for(int i = 0; i < 400; i++){
-                //     y = test_amp * sin(0.1 * PI * i * 0.250 + 0.5) / 2.0;
+                if(powerArrays.vCalibrated[20] < 0){
+                    
+                    update1 = true;
+                    for(int i = 40; i < wave_samples; i++){
 
-                //     Trace(&(spr_2.waveform), i * 0.250, y, 0, 25, 220, 270, 215, 0, 100, 20, -18, 18, 6, "", "Time", "", update1, TFT_GREEN);    
-                // }
+                        Trace(&(spr_2.waveform), (i - 40) * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED);    
+                    }
+                
+                    update1 = true;
+                    for(int i = 40; i < wave_samples; i++){
+
+                        Trace(&(spr_2.waveform), (i - 40) * 0.250, powerArrays.cCalibrated[i] * 20, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN);    
+                    }
+
+                } else {
+                    update1 = true;
+                    for(int i = 0; i < wave_samples - 40; i++){
+
+                        Trace(&(spr_2.waveform), i * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED);    
+                    }
+
+                    update1 = true;
+                    for(int i = 0; i < wave_samples - 40; i++){
+
+                        Trace(&(spr_2.waveform), i * 0.250, powerArrays.cCalibrated[i] * 20, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN);
+                    }
+
+                }
+
+                
 
                 spr_2.waveform.pushToSprite(&(spr_2.waveform_background), 0, 0, TFT_BLACK);
                 spr_2.waveform_background.pushSprite(0, 0);
@@ -572,7 +596,7 @@ extern "C" void app_main(void) {
             }break;
         }
         
-        // vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(5));  // 5ms delay to reset the watchdog timer
 
     }
 
