@@ -38,6 +38,9 @@ extern "C"{
 // The current mode of the DIP SWITCH
 static enum mode current_mode = LAB1;
 
+// bool display1 = true;
+// bool update1 = true;
+
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
@@ -63,7 +66,7 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
     else if(level_pin_1 == 0 && level_pin_2 == 0 && level_pin_3 == 1 && level_pin_4 == 1){
         current_mode = PHOTORES;
     }
-    else if(level_pin_1 == 0 && level_pin_2 == 1 && level_pin_3 == 0 && level_pin_4 == 0){
+    else if(level_pin_1 == 1 && level_pin_2 == 0 && level_pin_3 == 0 && level_pin_4 == 1){
         current_mode = WAVEFORM;
     }
 }
@@ -213,6 +216,12 @@ extern "C" void app_main(void) {
     boolean first_photores = true;
     boolean first_waveform = true;
     sprites spr_2;
+
+    spr_2.tft.init();
+    spr_2.tft.setRotation(1);
+    spr_2.tft.fillScreen(TFT_BLACK);
+
+    double test_amp = 17.0;
 
     while(true){
 
@@ -485,6 +494,9 @@ extern "C" void app_main(void) {
 
             case WAVEFORM: {
 
+                double max;
+                double min;
+
                 if (first_waveform || !first_lab_2 || !first_lab_1 || !first_lab_3 || !first_photores)
                 {
                     if (!first_lab_2)
@@ -516,7 +528,8 @@ extern "C" void app_main(void) {
                         spr_2.raw.deleteSprite();
                     }
 
-                    
+                    create_sprite_waveform(&spr_2);
+
                     first_photores = true;
                     first_lab_2 = true;
                     first_lab_1 = true;
@@ -524,9 +537,34 @@ extern "C" void app_main(void) {
                     first_waveform = false;
                 }
                 
+                double y = 0;
                 
-            
-            
+                powerMes = power_meter(&powerArrays, adc1_handle);
+
+                display1 = true;
+                Graph(&(spr_2.waveform_background), 0, 0, 0, 25, 220, 270, 215, 0, 100, 20, -23, 23, 6, "", "", "", display1, YELLOW);
+
+                
+                spr_2.waveform.fillSprite(TFT_BLACK);
+
+                update1 = true;
+                for(int i = 0; i < 400; i++){
+                    // y = test_amp * sin(0.1 * PI * i * 0.250);
+
+                    Trace(&(spr_2.waveform), i * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 270, 215, 0, 100, 20, -18, 18, 6, "", "", "", update1, TFT_WHITE);    
+                }
+                
+                // update1 = true;
+                // for(int i = 0; i < 400; i++){
+                //     y = test_amp * sin(0.1 * PI * i * 0.250 + 0.5) / 2.0;
+
+                //     Trace(&(spr_2.waveform), i * 0.250, y, 0, 25, 220, 270, 215, 0, 100, 20, -18, 18, 6, "", "Time", "", update1, TFT_GREEN);    
+                // }
+
+                spr_2.waveform.pushToSprite(&(spr_2.waveform_background), 0, 0, TFT_BLACK);
+                spr_2.waveform_background.pushSprite(0, 0);
+                
+                Serial.println("Waveform mode");            
             }break;
 
             default: {

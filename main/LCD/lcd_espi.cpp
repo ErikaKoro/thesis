@@ -6,6 +6,9 @@
 */
 void setup_display(sprites *spr_2, String header, mode current_mode){
 
+    // fill screen with black to erase previous data on LCD
+    spr_2->tft.fillScreen(TFT_BLACK);
+
     spr_2->tft.setTextSize(3);
 
     // how many pixels does the text occupy
@@ -43,12 +46,10 @@ void setup_display(sprites *spr_2, String header, mode current_mode){
         spr_2->mcp_vol.setTextSize(3);
     }
 
-    spr_2->tft.init();
+    // spr_2->tft.init();
 
     // landscape mode
-    spr_2->tft.setRotation(1);
-    // fill screen with black to erase previous data on LCD
-    spr_2->tft.fillScreen(TFT_BLACK);
+    // spr_2->tft.setRotation(1);
 
 }
 
@@ -85,7 +86,7 @@ void setup_display_lab3(sprites *spr_3){
         spr_3->factor.createSprite(sprite_width, 50);
         spr_3->factor.setTextSize(3);
     
-        spr_3->tft.init();
+        // spr_3->tft.init();
     
         // landscape mode
         spr_3->tft.setRotation(1);

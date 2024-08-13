@@ -9,7 +9,7 @@
 #define vPin ADC_CHANNEL_1  // 37
 #define iPin ADC_CHANNEL_2  // 38
 
-#define nSamples 800
+#define nSamples 400
 #define vOffset 1885
 #define vStep 0.012
 #define iOffset 1137

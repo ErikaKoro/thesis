@@ -1,6 +1,3 @@
-#ifndef WAVEFORM_HPP
-#define WAVEFORM_HPP
-
 /*
 
   This program provides cartesian type graph function
@@ -14,56 +11,19 @@
   
 */
 
-#include "../LCD/lcd_espi.hpp"
-
-
-#define LTBLUE    0xB6DF
-#define LTTEAL    0xBF5F
-#define LTGREEN   0xBFF7
-#define LTCYAN    0xC7FF
-#define LTRED     0xFD34
-#define LTMAGENTA 0xFD5F
-#define LTYELLOW  0xFFF8
-#define LTORANGE  0xFE73
-#define LTPINK    0xFDDF
-#define LTPURPLE  0xCCFF
-#define LTGREY    0xE71C
-
-#define BLUE      0x001F
-#define TEAL      0x0438
-#define GREEN     0x07E0
-#define CYAN      0x07FF
-#define RED       0xF800
-#define MAGENTA   0xF81F
-#define YELLOW    0xFFE0
-#define ORANGE    0xFC00
-#define PINK      0xF81F
-#define PURPLE    0x8010
-#define GREY      0xC618
-#define WHITE     0xFFFF
-#define BLACK     0x0000
-
-#define DKBLUE    0x000D
-#define DKTEAL    0x020C
-#define DKGREEN   0x03E0
-#define DKCYAN    0x03EF
-#define DKRED     0x6000
-#define DKMAGENTA 0x8008
-#define DKYELLOW  0x8400
-#define DKORANGE  0x8200
-#define DKPINK    0x9009
-#define DKPURPLE  0x4010
-#define DKGREY    0x4A49
+#include "lcd_espi.hpp"
+#include "waveform.hpp"
 
 // these are the only external variables used by the graph function
 // it's a flag to draw the coordinate system only on the first call to the Graph() function
 // and will mimize flicker
 // also create some variables to store the old x and y, if you draw 2 graphs on the same display
 // you will need to store ox and oy per each display
-bool display1 = true;
-bool update1 = true;
+
 
 double ox = -999, oy = -999; // Force them to be off screen
+bool display1 = true;
+bool update1 = true;
 
 /*
 
@@ -74,6 +34,7 @@ double ox = -999, oy = -999; // Force them to be off screen
   &d name of your display object
   x = x data point
   y = y datapont
+  dp = decimal point precision
   gx = x graph location (lower left)
   gy = y graph location (lower left)
   w = width of graph
@@ -92,101 +53,105 @@ double ox = -999, oy = -999; // Force them to be off screen
 */
 
 
-void Graph(sprites spr, double x, double y, byte dp,
+void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
                            double gx, double gy, double w, double h,
                            double xlo, double xhi, double xinc,
                            double ylo, double yhi, double yinc,
                            char *title, char *xlabel, char *ylabel,
                            bool &redraw, unsigned int color) {
 
-  double ydiv, xdiv;
-  double i;
-  double temp;
-  int rot, newrot;
+    double ydiv, xdiv;
+    double i;
+    double temp;
+    int rot, newrot;
 
-  // gcolor = graph grid colors
-  // acolor = axes line colors
-  // pcolor = color of your plotted data
-  // tcolor = text color
-  // bcolor = background color
-  unsigned int gcolor = DKBLUE;
-  unsigned int acolor = RED;
-  unsigned int pcolor = color;
-  unsigned int tcolor = WHITE;
-  unsigned int bcolor = BLACK;
+    // gcolor = graph grid colors
+    // acolor = axes line colors
+    // pcolor = color of your plotted data
+    // tcolor = text color
+    // bcolor = background color
+    unsigned int gcolor = DKBLUE;
+    unsigned int acolor = RED;
+    unsigned int pcolor = color;
+    unsigned int tcolor = WHITE;
+    unsigned int bcolor = BLACK;
 
-  if (redraw == true) {
+    if (redraw == true) {
 
-    redraw = false;
-    // initialize old x and old y in order to draw the first point of the graph
-    // but save the transformed value
-    // note my transform funcition is the same as the map function, except the map uses long and we need doubles
-    //ox = (x - xlo) * ( w) / (xhi - xlo) + gx;
-    //oy = (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+        redraw = false;
+        // initialize old x and old y in order to draw the first point of the graph
+        // but save the transformed value
+        // note my transform funcition is the same as the map function, except the map uses long and we need doubles
+        //ox = (x - xlo) * ( w) / (xhi - xlo) + gx;
+        //oy = (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
 
-    spr.tft.setTextDatum(MR_DATUM);
+        waveform->fillSprite(TFT_BLACK);
 
-    // draw y scale
-    for ( i = ylo; i <= yhi; i += yinc) {
-      // compute the transform
-      temp =  (i - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+        waveform->setTextDatum(MR_DATUM);
 
-      if (i == 0) {
-        spr.tft.drawLine(gx, temp, gx + w, temp, acolor);
-        spr.tft.setTextColor(acolor, bcolor);
-        spr.tft.drawString(xlabel, (int)(gx + w) , (int)temp, 2);
-      }
-      else {
-        spr.tft.drawLine(gx, temp, gx + w, temp, gcolor);
-      }
-      // draw the axis labels
-      spr.tft.setTextColor(tcolor, bcolor);
-      // precision is default Arduino--this could really use some format control
-      spr.tft.drawFloat(i, dp, gx - 4, temp, 1);
+        // draw y scale
+        for ( i = ylo; i <= yhi; i += yinc) {
+            // compute the transform
+            temp =  (i - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+
+            if (i == 0) {
+                waveform->drawLine(gx, temp, gx + w, temp, acolor);
+                waveform->setTextColor(acolor, bcolor);
+                waveform->drawString(xlabel, (int)(gx + w) , (int)temp, 2);
+            }
+            else {
+                waveform->drawLine(gx, temp, gx + w, temp, gcolor);
+            }
+
+            // draw the axis labels
+            waveform->setTextColor(tcolor, bcolor);
+            // precision is default Arduino--this could really use some format control
+            waveform->drawFloat(i, dp, gx - 4, temp, 1);
+        }
+
+        // draw x scale
+        for (i = xlo; i <= xhi; i += xinc) {
+
+            // compute the transform
+            temp =  (i - xlo) * ( w) / (xhi - xlo) + gx;
+            if (i == 0) {
+                waveform->drawLine(temp, gy, temp, gy - h, acolor);
+                waveform->setTextColor(acolor, bcolor);
+                waveform->setTextDatum(BC_DATUM);
+                waveform->drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
+            }
+            else {
+                waveform->drawLine(temp, gy, temp, gy - h, gcolor);
+            }
+
+            // draw the axis labels
+            waveform->setTextColor(tcolor, bcolor);
+            waveform->setTextDatum(TC_DATUM);
+            // precision is default Arduino--this could really use some format control
+            waveform->drawFloat(i, dp, temp, gy + 7, 1);
+        }
+
+        //now draw the graph labels
+        waveform->setTextColor(tcolor, bcolor);
+        waveform->drawString(title, (int)(gx + w / 2) , (int)(gy - h - 30), 4);
     }
 
-    // draw x scale
-    for (i = xlo; i <= xhi; i += xinc) {
-
-      // compute the transform
-      temp =  (i - xlo) * ( w) / (xhi - xlo) + gx;
-      if (i == 0) {
-        spr.tft.drawLine(temp, gy, temp, gy - h, acolor);
-        spr.tft.setTextColor(acolor, bcolor);
-        spr.tft.setTextDatum(BC_DATUM);
-        spr.tft.drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
-      }
-      else {
-        spr.tft.drawLine(temp, gy, temp, gy - h, gcolor);
-      }
-      // draw the axis labels
-      spr.tft.setTextColor(tcolor, bcolor);
-      spr.tft.setTextDatum(TC_DATUM);
-      // precision is default Arduino--this could really use some format control
-      spr.tft.drawFloat(i, dp, temp, gy + 7, 1);
-    }
-
-    //now draw the graph labels
-    spr.tft.setTextColor(tcolor, bcolor);
-    spr.tft.drawString(title, (int)(gx + w / 2) , (int)(gy - h - 30), 4);
-  }
-
-  // the coordinates are now drawn, plot the data
-  // the entire plotting code are these few lines...
-  // recall that ox and oy are initialized above
-  //x =  (x - xlo) * ( w) / (xhi - xlo) + gx;
-  //y =  (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
-  //tft.drawLine(ox, oy, x, y, pcolor);
-  // it's up to you but drawing 2 more lines to give the graph some thickness
-  //tft.drawLine(ox, oy + 1, x, y + 1, pcolor);
-  //tft.drawLine(ox, oy - 1, x, y - 1, pcolor);
-  //ox = x;
-  //oy = y;
+    // the coordinates are now drawn, plot the data
+    // the entire plotting code are these few lines...
+    // recall that ox and oy are initialized above
+    //x =  (x - xlo) * ( w) / (xhi - xlo) + gx;
+    //y =  (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+    //tft.drawLine(ox, oy, x, y, pcolor);
+    // it's up to you but drawing 2 more lines to give the graph some thickness
+    //tft.drawLine(ox, oy + 1, x, y + 1, pcolor);
+    //tft.drawLine(ox, oy - 1, x, y - 1, pcolor);
+    //ox = x;
+    //oy = y;
 
 }
 
 
-void Trace(sprites spr, double x,  double y,  byte dp,
+void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
            double gx, double gy,
            double w, double h,
            double xlo, double xhi, double xinc,
@@ -194,6 +159,7 @@ void Trace(sprites spr, double x,  double y,  byte dp,
            char *title, char *xlabel, char *ylabel,
            bool &update1, unsigned int color)
 {
+
   double ydiv, xdiv;
   double i;
   double temp;
@@ -210,6 +176,9 @@ void Trace(sprites spr, double x,  double y,  byte dp,
   // note my transform funcition is the same as the map function, except the map uses long and we need doubles
   if (update1) {
     update1 = false;
+
+    // reset the screen
+    // waveform->fillSprite(TFT_BLACK);
     
     ox = (x - xlo) * ( w) / (xhi - xlo) + gx;
     oy = (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
@@ -218,7 +187,7 @@ void Trace(sprites spr, double x,  double y,  byte dp,
     if ((oy < gy-h) || (oy > gy)) {update1 = true; return;}
     
 
-    spr.tft.setTextDatum(MR_DATUM);
+    waveform->setTextDatum(MR_DATUM);
 
     // draw y scale
     for ( i = ylo; i <= yhi; i += yinc) {
@@ -226,13 +195,13 @@ void Trace(sprites spr, double x,  double y,  byte dp,
       temp =  (i - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
 
       if (i == 0) {
-        spr.tft.setTextColor(acolor, bcolor);
-        spr.tft.drawString(xlabel, (int)(gx + w) , (int)temp, 2);
+        waveform->setTextColor(acolor, bcolor);
+        waveform->drawString(xlabel, (int)(gx + w) , (int)temp - 10, 2);
       }
       // draw the axis labels
-      spr.tft.setTextColor(tcolor, bcolor);
+      waveform->setTextColor(tcolor, bcolor);
       // precision is default Arduino--this could really use some format control
-      spr.tft.drawFloat(i, dp, gx - 4, temp, 1);
+      waveform->drawFloat(i, dp, gx - 4, temp, 1);
     }
 
     // draw x scale
@@ -241,21 +210,21 @@ void Trace(sprites spr, double x,  double y,  byte dp,
       // compute the transform
       temp =  (i - xlo) * ( w) / (xhi - xlo) + gx;
       if (i == 0) {
-        spr.tft.setTextColor(acolor, bcolor);
-        spr.tft.setTextDatum(BC_DATUM);
-        spr.tft.drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
+        waveform->setTextColor(acolor, bcolor);
+        waveform->setTextDatum(BC_DATUM);
+        waveform->drawString(ylabel, (int)temp, (int)(gy - h - 8) , 2);
       }
 
       // draw the axis labels
-      spr.tft.setTextColor(tcolor, bcolor);
-      spr.tft.setTextDatum(TC_DATUM);
+      waveform->setTextColor(tcolor, bcolor);
+      waveform->setTextDatum(TC_DATUM);
       // precision is default Arduino--this could really use some format control
-      spr.tft.drawFloat(i, dp, temp, gy + 7, 1);
+      waveform->drawFloat(i, dp, temp, gy + 7, 1);
     }
 
     //now draw the graph labels
-    spr.tft.setTextColor(tcolor, bcolor);
-    spr.tft.drawString(title, (int)(gx + w / 2) , (int)(gy - h - 30), 4);
+    waveform->setTextColor(tcolor, bcolor);
+    waveform->drawString(title, (int)(gx + w / 2) , (int)(gy - h - 30), 4);
   }
 
   // the coordinates are now drawn, plot the data
@@ -268,7 +237,7 @@ void Trace(sprites spr, double x,  double y,  byte dp,
   if ((y < gy-h) || (y > gy)) {update1 = true; return;}
     
     
-  spr.tft.drawLine(ox, oy, x, y, pcolor);
+  waveform->drawLine(ox, oy, x, y, pcolor);
   // it's up to you but drawing 2 more lines to give the graph some thickness
   //tft.drawLine(ox, oy + 1, x, y + 1, pcolor);
   //tft.drawLine(ox, oy - 1, x, y - 1, pcolor);
@@ -280,14 +249,21 @@ void Trace(sprites spr, double x,  double y,  byte dp,
 
 void create_sprite_waveform(sprites *spr){
 
-    spr->tft.setTextSize(2);
+    
     spr->waveform.setColorDepth(8);
     spr->waveform.createSprite(320, 240);
+    spr->waveform.setTextSize(1);
+    // spr->waveform.fillSprite(TFT_BLACK);
+    // spr->waveform.pushSprite(0, 0);
 
-    spr->tft.init();
-    spr->tft.setRotation(1);
-    spr->tft.fillScreen(TFT_BLACK);
-    spr->tft.setTextColor(TFT_WHITE);
+    spr->waveform_background.setColorDepth(8);
+    spr->waveform_background.createSprite(320, 240);
+    spr->waveform_background.setTextSize(1);
+    spr->waveform_background.fillSprite(TFT_BLACK);
+    spr->waveform_background.pushSprite(0, 0);
+
+
+    display1 = true;
+
+    Graph(&(spr->waveform_background), 0, 0, 0, 25, 220, 270, 215, 0, 200, 40, -18, 18, 6, "", "", "", display1, YELLOW);
 }
-
-#endif // WAVEFORM_HPP

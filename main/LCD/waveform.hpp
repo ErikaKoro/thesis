@@ -16,7 +16,6 @@
 
 #include "../LCD/lcd_espi.hpp"
 
-
 #define LTBLUE    0xB6DF
 #define LTTEAL    0xBF5F
 #define LTGREEN   0xBFF7
@@ -55,18 +54,11 @@
 #define DKPURPLE  0x4010
 #define DKGREY    0x4A49
 
-// these are the only external variables used by the graph function
-// it's a flag to draw the coordinate system only on the first call to the Graph() function
-// and will mimize flicker
-// also create some variables to store the old x and y, if you draw 2 graphs on the same display
-// you will need to store ox and oy per each display
-bool display1 = true;
-bool update1 = true;
-
-double ox = -999, oy = -999; // Force them to be off screen
+extern bool update1;
+extern bool display1;
 
 
-void Graph(sprites spr, double x, double y, byte dp,
+void Graph(TFT_eSprite *waveform, double x, double y, byte dp,
                            double gx, double gy, double w, double h,
                            double xlo, double xhi, double xinc,
                            double ylo, double yhi, double yinc,
@@ -74,13 +66,15 @@ void Graph(sprites spr, double x, double y, byte dp,
                            bool &redraw, unsigned int color);
 
 
-void Trace(sprites spr, double x,  double y,  byte dp,
+void Trace(TFT_eSprite *waveform, double x,  double y,  byte dp,
            double gx, double gy,
            double w, double h,
            double xlo, double xhi, double xinc,
            double ylo, double yhi, double yinc,
            char *title, char *xlabel, char *ylabel,
            bool &update1, unsigned int color);
+
+void create_sprite_waveform(sprites *spr);
 
 
 #endif // WAVEFORM_HPP
