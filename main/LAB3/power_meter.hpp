@@ -9,8 +9,8 @@
 #define vPin ADC_CHANNEL_1  // 37
 #define iPin ADC_CHANNEL_2  // 38
 
-#define sample_time 250
-#define nSamples 125000 / sample_time
+// #define sample_time 250
+// #define nSamples 125000 / sample_time
 
 #define vOffset 1885
 #define vStep 0.012
@@ -33,6 +33,6 @@ typedef struct{
 }powerArrays;
 
 
-powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_handle);
+powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_handle, int time_delay);
 
 #endif

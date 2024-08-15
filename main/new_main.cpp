@@ -24,6 +24,8 @@ extern "C"{
 #define ADC_ATTEN              ADC_ATTEN_DB_11
 #define ESP_INTR_FLAG_DEFAULT  0
 
+#define RATE_PIN ADC_CHANNEL_3
+
 
 
 // // Enumeration that contains all possible modes of the DIP SWITCH
@@ -185,9 +187,13 @@ extern "C" void app_main(void) {
     powerArrays powerArrays;
     powerArrays.aRms = 0;
     powerArrays.vRms = 0;
+    
+    int dynamic_sample_time = 250; // this is the dynamic sample time for the waveform generation
+    int dynamic_n_samples = 125000 / dynamic_sample_time; 
 
-    powerArrays.vCalibrated = (double *)malloc(nSamples * sizeof(double));
-    powerArrays.cCalibrated = (double *)malloc(nSamples * sizeof(double));
+    powerArrays.vCalibrated = (double *)malloc(dynamic_n_samples * sizeof(double));
+    powerArrays.cCalibrated = (double *)malloc(dynamic_n_samples * sizeof(double));
+
 
     // pinMode(vPin, INPUT);
     // pinMode(iPin, INPUT);
@@ -208,6 +214,15 @@ extern "C" void app_main(void) {
         return;
     }
 
+    // ABOUT SAMPLE RATE
+    // CONFIG RATE PIN
+    int rate_pin_ok = set_oneshot_channel(adc1_handle, RATE_PIN, ADC_ATTEN, ADC_BITWIDTH);
+
+    if(rate_pin_ok != 0){
+        Serial.println("Error configuring ADC channel for rate pin");
+        return;
+    }
+
     gpio_isr_handler(0);
 
     boolean first_lab_1 = true;
@@ -221,17 +236,17 @@ extern "C" void app_main(void) {
     spr_2.tft.setRotation(1);
     spr_2.tft.fillScreen(TFT_BLACK);
 
-    int wave_samples = nSamples - 60;
-
-    double test_amp = 17.0;
-
     while(true){
 
         switch(current_mode){
 
             case LAB1: {
 
+                
+
                 if(first_lab_1 || !first_lab_2 || !first_lab_3 || !first_photores || !first_waveform){
+
+                    Serial.println("Lab 1 mode");
                     
                     if(!first_lab_2){
 
@@ -291,11 +306,14 @@ extern "C" void app_main(void) {
 
             case LAB2: {
 
+
                 // Serial.println("Photoresistor voltage:" + String(photores_measurement.voltage) + " mV");
                 
                 // Serial.println("Photoresistor resistance: " + String(photo_resistance) + " ");
 
                 if(first_lab_2 || !first_lab_1 || !first_lab_3 || !first_photores || !first_waveform){
+
+                    Serial.println("Lab 2 mode");
 
                     if(!first_lab_3){
                         // delete previous sprites
@@ -458,7 +476,7 @@ extern "C" void app_main(void) {
                     first_waveform = true;
                 }
 
-                powerMes = power_meter(&powerArrays, adc1_handle);
+                powerMes = power_meter(&powerArrays, adc1_handle, 250);
 
                 spr_2.rms.fillSprite(TFT_BLACK);
                 spr_2.active.fillSprite(TFT_BLACK);
@@ -541,44 +559,70 @@ extern "C" void app_main(void) {
                 
                 double y = 0;
                 
-                powerMes = power_meter(&powerArrays, adc1_handle);
+                powerMes = power_meter(&powerArrays, adc1_handle, dynamic_sample_time);
 
                 vTaskDelay(pdMS_TO_TICKS(5)); // 5ms delay to reset the watchdog timer
 
                 display1 = true;
-                Graph(&(spr_2.waveform_background), 0, 0, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", display1, YELLOW);
+                // 
+                Graph(
+                    &(spr_2.waveform_background), 0, 0, 0,
+                    MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
+                    0, 100, 10, -20, 20, 5, "", "",
+                    "Volt", "Amp", display1, YELLOW
+                );
 
                 
                 spr_2.waveform.fillSprite(TFT_BLACK);
 
-                // The power array is filled with the voltage values. Sometime the values start from the negative half of the sine wave and the graph is not displayed correctly. If this 
+                // The power array is filled with the voltage values. Sometimes the values start from the negative half of the sine wave and the graph is not displayed correctly. If this 
                 // happens, we plot the graph from 40 to 440 and the graph is displayed correctly.
                 
-                if(powerArrays.vCalibrated[20] < 0){
+                int first_max = 5000 / dynamic_sample_time;
+
+                if(powerArrays.vCalibrated[first_max] < 0){
                     
                     update1 = true;
-                    for(int i = 40; i < wave_samples; i++){
+                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time; i++){
 
-                        Trace(&(spr_2.waveform), (i - 40) * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED);    
+                        Trace(
+                            &(spr_2.waveform), (i - 2 * first_max) * dynamic_sample_time / 1000.0,
+                            powerArrays.vCalibrated[i], 0,
+                            MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
+                            0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED
+                        );    
                     }
                 
                     update1 = true;
-                    for(int i = 40; i < wave_samples; i++){
+                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time; i++){
 
-                        Trace(&(spr_2.waveform), (i - 40) * 0.250, powerArrays.cCalibrated[i] * 20, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN);    
+                        Trace(
+                            &(spr_2.waveform), (i - 2 * first_max) * dynamic_sample_time / 1000.0,
+                            powerArrays.cCalibrated[i] * 20, 0,
+                            MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
+                            0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN
+                        );    
                     }
 
                 } else {
                     update1 = true;
-                    for(int i = 0; i < wave_samples - 40; i++){
+                    for(int i = 0; i < 100000 / dynamic_sample_time - 2 * first_max; i++){
 
-                        Trace(&(spr_2.waveform), i * 0.250, powerArrays.vCalibrated[i], 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED);    
+                        Trace(
+                            &(spr_2.waveform), i * dynamic_sample_time / 1000.0, powerArrays.vCalibrated[i], 0,
+                            MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
+                            0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_RED
+                        );    
                     }
 
                     update1 = true;
-                    for(int i = 0; i < wave_samples - 40; i++){
+                    for(int i = 0; i < 100000 / dynamic_sample_time - 2 * first_max; i++){
 
-                        Trace(&(spr_2.waveform), i * 0.250, powerArrays.cCalibrated[i] * 20, 0, 25, 220, 260, 215, 0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN);
+                        Trace(
+                            &(spr_2.waveform), i * dynamic_sample_time / 1000.0, powerArrays.cCalibrated[i] * 20, 0,
+                            MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
+                            0, 100, 10, -20, 20, 5, "", "", "Volt", "Amp", update1, TFT_GREEN
+                        );
                     }
 
                 }
@@ -588,7 +632,22 @@ extern "C" void app_main(void) {
                 spr_2.waveform.pushToSprite(&(spr_2.waveform_background), 0, 0, TFT_BLACK);
                 spr_2.waveform_background.pushSprite(0, 0);
                 
-                Serial.println("Waveform mode");            
+
+                // FIXME fix the reading !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // update the dynamic sample time from the potentiometer
+                dynamic_sample_time = read_calibrate(
+                    RATE_PIN,
+                    adc1_handle,
+                    photo_calibration
+                ).raw;
+
+                // the range of the sample time is 250 to 5000. For this reason we must map the value to the range 250 to 5000
+                dynamic_sample_time = map(dynamic_sample_time, 0, 4095, 250, 8000);
+
+                dynamic_n_samples = 125000 / dynamic_sample_time;
+                
+
+                Serial.println("Sample time: " + String(dynamic_sample_time) + " ms");            
             }break;
 
             default: {

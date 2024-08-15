@@ -293,5 +293,5 @@ void create_sprite_waveform(sprites *spr){
 
     display1 = true;
 
-    Graph(&(spr->waveform_background), 0, 0, 0, 25, 220, 260, 215, 0, 200, 40, -18, 18, 6, "", "", "", "", display1, YELLOW);
+    // Graph(&(spr->waveform_background), 0, 0, 0, 25, 220, 260, 215, 0, 200, 40, -18, 18, 6, "", "", "", "", display1, YELLOW);
 }

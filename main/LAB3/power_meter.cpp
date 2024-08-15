@@ -23,11 +23,13 @@ extern "C"{
  *  
 */
 
-powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_handle){
+powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_handle, int time_delay){
 
     uint64_t start, stop;
 
     powerMes powerMes;
+
+    int nSamples = 125000 / time_delay;
     
     int measure;
     int ret = adc_oneshot_read(adc1_handle, vPin, &measure);
@@ -96,7 +98,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
         stop = micros();
 
-        delayMicroseconds(sample_time - (stop - start));
+        delayMicroseconds(time_delay - (stop - start));
 
         // rate = analogRead(ratePint);
         // rate = map(rate, 0, 4096, 250, 20000);
@@ -110,7 +112,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     powerMes.powerFactor = powerMes.activePower / powerMes.apparentPower;
 
-    for (int i = 0; i < nSamples; i++){
+    // for (int i = 0; i < nSamples; i++){
         // Serial.print(4000);
         // Serial.print(",");
         // Serial.print(0);
@@ -141,7 +143,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
         // Serial.print(powerFactor);
 
         // Serial.println();
-    }
+    // }
 
     // delay(500);
 

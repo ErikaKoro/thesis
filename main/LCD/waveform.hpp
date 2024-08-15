@@ -54,6 +54,11 @@
 #define DKPURPLE  0x4010
 #define DKGREY    0x4A49
 
+#define MARGIN_X 25
+#define MARGIN_Y 220
+#define WIDTH 260
+#define HEIGHT 215
+
 extern bool update1;
 extern bool display1;
 
