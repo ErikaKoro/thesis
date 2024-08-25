@@ -578,8 +578,11 @@ extern "C" void app_main(void) {
                 // The power array is filled with the voltage values. Sometimes the values start from the negative half of the sine wave and the graph is not displayed correctly. If this 
                 // happens, we plot the graph from 40 to 440 and the graph is displayed correctly.
                 
+                // 5000 us is the first time that we reach a maximum or a minimum value depends on the rising edge of the signal.
+                // first max gives the index of the first maximum or minimum value in the array
                 int first_max = 5000 / dynamic_sample_time;
 
+                // 
                 if(powerArrays.vCalibrated[first_max] < 0){
                     
                     update1 = true;
@@ -596,6 +599,7 @@ extern "C" void app_main(void) {
                     update1 = true;
                     for(int i = 2 * first_max; i < 100000 / dynamic_sample_time; i++){
 
+                        // 
                         Trace(
                             &(spr_2.waveform), (i - 2 * first_max) * dynamic_sample_time / 1000.0,
                             powerArrays.cCalibrated[i] * 20, 0,
@@ -606,6 +610,7 @@ extern "C" void app_main(void) {
 
                 } else {
                     update1 = true;
+                    // plot the same number of samples with the first case
                     for(int i = 0; i < 100000 / dynamic_sample_time - 2 * first_max; i++){
 
                         Trace(
@@ -641,7 +646,7 @@ extern "C" void app_main(void) {
                     photo_calibration
                 ).raw;
 
-                // the range of the sample time is 250 to 5000. For this reason we must map the value to the range 250 to 5000
+                // the range of the sample time is 250 to 5000. For this reason we must map the value to the range 250 to 8000
                 dynamic_sample_time = map(dynamic_sample_time, 0, 4095, 250, 8000);
 
                 dynamic_n_samples = 125000 / dynamic_sample_time;

@@ -112,7 +112,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     powerMes.powerFactor = powerMes.activePower / powerMes.apparentPower;
 
-    // for (int i = 0; i < nSamples; i++){
+    for (int i = 0; i < nSamples; i++){
         // Serial.print(4000);
         // Serial.print(",");
         // Serial.print(0);
@@ -143,7 +143,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
         // Serial.print(powerFactor);
 
         // Serial.println();
-    // }
+    }
 
     // delay(500);
 
