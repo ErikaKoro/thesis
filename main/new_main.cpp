@@ -584,9 +584,11 @@ extern "C" void app_main(void) {
 
                 // 
                 if(powerArrays.vCalibrated[first_max] < 0){
-                    
+
+                    Serial.println("Negative half of the sine wave");
+
                     update1 = true;
-                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time; i++){
+                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time + 2 * first_max; i++){
 
                         Trace(
                             &(spr_2.waveform), (i - 2 * first_max) * dynamic_sample_time / 1000.0,
@@ -597,7 +599,7 @@ extern "C" void app_main(void) {
                     }
                 
                     update1 = true;
-                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time; i++){
+                    for(int i = 2 * first_max; i < 100000 / dynamic_sample_time + 2 * first_max; i++){
 
                         // 
                         Trace(
@@ -609,9 +611,12 @@ extern "C" void app_main(void) {
                     }
 
                 } else {
+
+                    Serial.println("Positive half of the sine wave");
+
                     update1 = true;
                     // plot the same number of samples with the first case
-                    for(int i = 0; i < 100000 / dynamic_sample_time - 2 * first_max; i++){
+                    for(int i = 0; i < 100000 / dynamic_sample_time; i++){  //  - 2 * first_max
 
                         Trace(
                             &(spr_2.waveform), i * dynamic_sample_time / 1000.0, powerArrays.vCalibrated[i], 0,
@@ -621,7 +626,7 @@ extern "C" void app_main(void) {
                     }
 
                     update1 = true;
-                    for(int i = 0; i < 100000 / dynamic_sample_time - 2 * first_max; i++){
+                    for(int i = 0; i < 100000 / dynamic_sample_time; i++){  //  - 2 * first_max
 
                         Trace(
                             &(spr_2.waveform), i * dynamic_sample_time / 1000.0, powerArrays.cCalibrated[i] * 20, 0,
@@ -652,7 +657,11 @@ extern "C" void app_main(void) {
                 dynamic_n_samples = 125000 / dynamic_sample_time;
                 
 
-                Serial.println("Sample time: " + String(dynamic_sample_time) + " ms");            
+                Serial.println("Sample time: " + String(dynamic_sample_time) + " μs");
+                Serial.println("Sample rate: " + String(1000000 / dynamic_sample_time) + " Hz");
+
+                Serial.println();
+                Serial.println();
             }break;
 
             default: {
