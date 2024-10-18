@@ -7,3 +7,5 @@ managed_components/
 report/
 dependencies.lock
 main/LAB3/Emonlib.*
+main/LCD/lcd.cpp
+main/LCD/lcd.hpp
