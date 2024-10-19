@@ -9,7 +9,7 @@
 #define CONST_PERIOD_2_PI   6.2832         // 2 * PI
 
 #define N_SAMPLES           400                // Length of wave array
-#define DAC_AMPLITUDE       127                // Amplitude of DAC voltage. If it's more than 256 will causes dac_output_voltage() output 0.
+#define DAC_AMPLITUDE       255                // Amplitude of DAC voltage. If it's more than 256 will causes dac_output_voltage() output 0.
 #define FREQ                1000 * N_SAMPLES   // Frequency of wave
 
 

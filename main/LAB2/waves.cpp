@@ -44,7 +44,7 @@ void setup_dac(dac_continuous_handle_t *cont_handle, waves *wave) {
     dac_continuous_new_channels(&cont_cfg, cont_handle);
     
     // enable the DAC channel
-    dac_continuous_enable(*cont_handle);
+    // dac_continuous_enable(*cont_handle);
 
     // generate waveforms
     generate_waveforms(wave);

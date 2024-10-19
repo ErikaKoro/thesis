@@ -6,12 +6,17 @@
 
 // Enumeration that contains all possible modes of the DIP SWITCH
 enum mode{
-    LAB1 = 0,   // 0 0 0 0 on the DIP SWITCH
-    LAB2 = 1,   // 0 1 0 0 on the DIP SWITCH
-    LAB3 = 2,   // 1 0 0 0 on the DIP SWITCH
-    PHOTORES = 3,  // 1 1 0 0 on the DIP SWITCH
-    BUZZER = 4, // 1 1 1 1 on the DIP SWITCH
-    WAVEFORM = 5 // 0 1 1 0 on the DIP SWITCH
+    LAB1 = 0,           // 0 0 0 0 on the DIP SWITCH  (0)
+    LAB2 = 1,           // 0 0 0 1 on the DIP SWITCH  (1)
+    LAB3 = 2,           // 0 0 1 0 on the DIP SWITCH  (2)
+    PHOTORES = 3,       // 0 0 1 1 on the DIP SWITCH  (3)
+    WAVEFORM = 4,       // 0 1 0 0 on the DIP SWITCH  (4)
+    SINE_WAVE = 5,      // 1 0 0 0 on the DIP SWITCH  (8)
+    TRIANGLE_WAVE = 6,  // 1 0 0 1 on the DIP SWITCH  (9)
+    SAWTOOTH_WAVE = 7,  // 1 0 1 0 on the DIP SWITCH  (10)
+    SQUARE_WAVE = 8,    // 1 0 1 1 on the DIP SWITCH  (11)
+    NOTHING = 9,        // Nothing state              (12)
+    INITIAL = 10        // Initial state              (13)
 };
 
 
