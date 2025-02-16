@@ -52,15 +52,9 @@ struct sprites{
 
 void setup_display_lab3(sprites *spr_3);
 
-// void setup_display_lab1(sprites *spr_1);
-// void setup_display_lab2(sprites *spr_2);
 void setup_display(sprites *spr_2, String header, mode current_mode);
-// void init_lab1(sprites *spr_1);
-// void init_lab(sprites *spr_2);
+
 void init_lab(sprites *spr_2, mode current_mode, String header);
 
-
-// MCP
-// void update_external_adc(int data, int voltage_value);
 
 #endif
