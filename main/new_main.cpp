@@ -10,7 +10,7 @@
 #include "LAB3/power_meter.hpp"
 #include "LCD/lcd_espi.hpp"
 #include "LCD/waveform.hpp"
-#include "LCD/gif.hpp"
+// #include "LCD/gif.hpp"
 
 
 extern "C"{
@@ -79,7 +79,7 @@ static void IRAM_ATTR gpio_isr_handler(void* arg) {
 
 
 /**
- * @brief Cleans up the previous lab's sprites
+ * @brief Cleans up the previous lab's sprites and disables the DAC if necessary
  * 
  * @param previous_mode The previous mode of the DIP SWITCH
  * @param tft_sprite The TFT sprite struct
@@ -229,8 +229,8 @@ extern "C" void app_main(void) {
 
     // ABOUT BUZZER
     // ACTIVATE BUZZER
-    notes fur_elise_notes;
-    fur_elise_notes = fur_elise();
+    // notes fur_elise_notes;
+    // fur_elise_notes = fur_elise();
 
     waves saved_waveforms;
     dac_continuous_handle_t dac_handle;
@@ -272,7 +272,7 @@ extern "C" void app_main(void) {
     powerArrays.vRms = 0;
     
     int dynamic_sample_time = 250; // this is the dynamic sample time for the waveform generation
-    int dynamic_n_samples = 125000 / dynamic_sample_time; 
+    int dynamic_n_samples = 120000 / dynamic_sample_time; 
 
     powerArrays.vCalibrated = (double *)malloc(dynamic_n_samples * sizeof(double));
     powerArrays.cCalibrated = (double *)malloc(dynamic_n_samples * sizeof(double));
@@ -313,13 +313,13 @@ extern "C" void app_main(void) {
     tft_sprite.tft.setRotation(1);
     tft_sprite.tft.fillScreen(TFT_BLACK);
 
-    Serial.println("Hello GIF 1");
+    // Serial.println("Hello GIF 1");
 
-    for (int i = 0; i < 10; i++){
-        display_hello_gif(tft_sprite.tft);
-    }
+    // for (int i = 0; i < 10; i++){
+    //     display_hello_gif(tft_sprite.tft);
+    // }
 
-    Serial.println("Hello GIF 8");
+    // Serial.println("Hello GIF 8");
 
     tft_sprite.tft.fillScreen(TFT_BLACK);
 
@@ -391,7 +391,7 @@ extern "C" void app_main(void) {
 
                 // EXTERNAL ADC
                 // update measurements
-                print_external_adc(&mcp);
+                external_adc_cal(&mcp);
 
                 // MCP data and voltage
                 tft_sprite.mcp.drawString(String(mcp.mcp_data), 2, 0);
@@ -424,7 +424,8 @@ extern "C" void app_main(void) {
                 tft_sprite.apparent.fillSprite(TFT_BLACK);
                 tft_sprite.factor.fillSprite(TFT_BLACK);
 
-                tft_sprite.rms.drawString(String(powerArrays.vRms), 0, 0);
+                tft_sprite.rms.drawString(String(powerArrays.vRms) + ",", 0, 0);
+                tft_sprite.rms.drawString(String(powerArrays.aRms), 130, 0);
                 tft_sprite.active.drawString(String(powerMes.activePower) + "W", 0, 0);
                 tft_sprite.apparent.drawString(String(powerMes.apparentPower) + "VA", 0, 0);
                 tft_sprite.factor.drawString(String(powerMes.powerFactor), 2, 0);
@@ -436,7 +437,7 @@ extern "C" void app_main(void) {
                 // Serial.println("Power Factor: " + String(powerMes.powerFactor) + " ");
                 // Serial.println();
 
-                tft_sprite.rms.pushSprite(tft_sprite.start_pixel, 60);
+                tft_sprite.rms.pushSprite(tft_sprite.start_pixel - 100, 60);
                 tft_sprite.active.pushSprite(tft_sprite.start_pixel, 110);
                 tft_sprite.apparent.pushSprite(tft_sprite.start_pixel, 160);
                 tft_sprite.factor.pushSprite(tft_sprite.start_pixel, 210);
@@ -579,7 +580,7 @@ extern "C" void app_main(void) {
                 vTaskDelay(pdMS_TO_TICKS(5)); // 5ms delay to reset the watchdog timer
 
                 display1 = true;
-                // 
+                // Creates grid and labels for the graph
                 Graph(
                     &(tft_sprite.waveform_background), 0, 0, 0,
                     MARGIN_X, MARGIN_Y, WIDTH, HEIGHT,
@@ -593,16 +594,19 @@ extern "C" void app_main(void) {
                 // The power array is filled with the voltage values. Sometimes the values start from the negative half of the sine wave and the graph is not displayed correctly. If this 
                 // happens, we plot the graph from 40 to 440 and the graph is displayed correctly.
                 
-                // 5000 us is the first time that we reach a maximum or a minimum value depends on the rising edge of the signal.
+                // 5000 us (20000 / 4) is the first time that we reach a maximum or a minimum value depending on the rising or falling edge of the signal.
                 // first max gives the index of the first maximum or minimum value in the array
                 int first_max = 5000 / dynamic_sample_time;
 
-                // 
+                // We check the maximum value(positive or negative) to be more precise for its sign
+                // earlier values might not be so precise
                 if(powerArrays.vCalibrated[first_max] < 0){
 
                     Serial.println("Negative half of the sine wave");
 
                     update1 = true;
+
+                    // When the signal starts from the negative half of the sine wave, we plot the graph from index 40 to 440 and neglect the first 40 samples
                     for(int i = 2 * first_max; i < 100000 / dynamic_sample_time + 2 * first_max; i++){
 
                         Trace(
@@ -614,6 +618,7 @@ extern "C" void app_main(void) {
                     }
                 
                     update1 = true;
+                    
                     for(int i = 2 * first_max; i < 100000 / dynamic_sample_time + 2 * first_max; i++){
 
                         // 
@@ -631,6 +636,8 @@ extern "C" void app_main(void) {
 
                     update1 = true;
                     // plot the same number of samples with the first case
+                    // When the signal starts from the positive half of the sine wave, we plot the graph from index 0 and neglect the last 40 samples
+                    // if more samples are plotted, the graph is not displayed correctly.
                     for(int i = 0; i < 100000 / dynamic_sample_time; i++){  //  - 2 * first_max
 
                         Trace(
@@ -664,10 +671,10 @@ extern "C" void app_main(void) {
                     photo_calibration
                 ).raw;
 
-                // the range of the sample time is 250 to 5000. For this reason we must map the value to the range 250 to 8000
+                // the range of the sampling period is 250 to 8000. For this reason we must map the value to the range 250 to 8000(sampling period)
                 dynamic_sample_time = map(dynamic_sample_time, 0, 4095, 250, 8000);
 
-                dynamic_n_samples = 125000 / dynamic_sample_time;
+                dynamic_n_samples = 120000 / dynamic_sample_time;
                 
 
                 Serial.println("Sample time: " + String(dynamic_sample_time) + " μs");

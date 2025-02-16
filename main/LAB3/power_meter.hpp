@@ -13,10 +13,9 @@
 // #define nSamples 125000 / sample_time
 
 #define vOffset 1885
-#define vStep 0.012
+#define vStep 0.0084
 #define iOffset 1137
-#define iStep 0.000659
-
+#define iStep 0.0009
 typedef struct{
     double activePower;
     double apparentPower;

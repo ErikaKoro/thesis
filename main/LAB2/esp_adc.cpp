@@ -124,7 +124,7 @@ measurement_t read_calibrate(
     int voltage_value;
 
     // read the raw value from the ADC
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i < 64; i++){
         
         int ret = adc_oneshot_read(adc1_handle, channel, &raw_data);
 
@@ -141,14 +141,12 @@ measurement_t read_calibrate(
             cali_sum += voltage_value;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
     
-    
-
     // ESP_ERROR_CHECK(adc_oneshot_read_voltage(adc1_handle, channel, cali_handle, &voltage_value));
-    measurement.raw = sum / 10;
-    measurement.voltage = cali_sum / 10;
+    measurement.raw = sum / 64;
+    measurement.voltage = cali_sum / 64;
 
     return measurement;
 

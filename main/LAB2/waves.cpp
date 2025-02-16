@@ -3,7 +3,7 @@
 
 
 /**
- * @brief Generates the waveforms to be outputted to the DAC
+ * @brief Generates the waveforms to be output to the DAC
  * 
  * @param wave Struct containing the waveforms
  */

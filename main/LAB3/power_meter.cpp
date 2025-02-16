@@ -29,7 +29,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     powerMes powerMes;
 
-    int nSamples = 125000 / time_delay;
+    int nSamples = 120000 / time_delay;
     
     int measure;
     int ret = adc_oneshot_read(adc1_handle, vPin, &measure);
@@ -51,11 +51,11 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
     // The voltage signal has a decimal offset of 1885 that corresponds to 0V. Read the voltage pin until the measurement equals to the offset value.
     while(measure > 1900 || measure < 1850){
         adc_oneshot_read(adc1_handle, vPin, &measure);
-        // measure = analogRead(vPin);
 
         stop = micros();
 
         // handle the disconnected load so no watchdog reset is triggered
+        // If no desired voltage is read in 100ms, the load is disconnected
         if (stop - start > 100000) {
             Serial.println("Load disconnected");
 
@@ -112,7 +112,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
     powerMes.powerFactor = powerMes.activePower / powerMes.apparentPower;
 
-    for (int i = 0; i < nSamples; i++){
+    // for (int i = 0; i < nSamples; i++){
         // Serial.print(4000);
         // Serial.print(",");
         // Serial.print(0);
@@ -143,7 +143,7 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
         // Serial.print(powerFactor);
 
         // Serial.println();
-    }
+    //}
 
     // delay(500);
 

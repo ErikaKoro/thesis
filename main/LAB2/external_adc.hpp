@@ -12,6 +12,6 @@ typedef struct{
 
 void init_external_adc(external_adc_t *mcp);
 
-void print_external_adc(external_adc_t *mcp);
+void external_adc_cal(external_adc_t *mcp);
 
 #endif // EXTERNAL_ADC_HPP

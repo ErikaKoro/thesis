@@ -54,7 +54,7 @@ void setup_display_lab3(sprites *spr_3){
         spr_3->tft.setTextSize(3);
     
         // how many pixels does the text occupy
-        int sprite_width = spr_3->tft.textWidth("VRMS,CRMS: ");
+        int sprite_width = spr_3->tft.textWidth("Apparent: ");
         spr_3->start_pixel = sprite_width;
     
         // the remaining pixels are for the value
@@ -63,7 +63,7 @@ void setup_display_lab3(sprites *spr_3){
     
         // create the sprite for voltage and current rms
         spr_3->rms.setColorDepth(8);
-        spr_3->rms.createSprite(sprite_width, 50);
+        spr_3->rms.createSprite(sprite_width + 80, 50);
         spr_3->rms.setTextSize(3);
     
         // create the sprite for the active power
@@ -115,7 +115,7 @@ void init_lab(sprites *spr_2, mode current_mode, String header){
         spr_2->tft.drawString("MCP Volt: ", 5, 210);
 
     } else if(current_mode == LAB3){
-        spr_2->tft.drawString("VRMS,CRMS: ", 5, 60);
+        spr_2->tft.drawString("V,I: ", 5, 60);
         spr_2->tft.drawString("Active: ", 5, 110);
         spr_2->tft.drawString("Apparent: ", 5, 160);
         spr_2->tft.drawString("P.factor: ", 5, 210);
