@@ -17,7 +17,6 @@
 idf_component_register(SRCS "new_main.cpp"
                             "LAB2/esp_adc.cpp"
                             "LAB2/external_adc.cpp"
-                            "LAB2/buzzer.cpp"
                             "LAB2/waves.cpp"
                             "LAB2/photoresistor.cpp"
                             "LAB1/lab_1.cpp"

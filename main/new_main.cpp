@@ -2,7 +2,6 @@
 
 #include "LAB2/esp_adc.hpp"
 #include "LAB2/external_adc.hpp"
-#include "LAB2/buzzer.hpp"
 #include "LAB2/waves.hpp"
 #include "LAB2/photoresistor.hpp"
 #include "LAB1/lab_1.hpp"
