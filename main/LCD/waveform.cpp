@@ -290,6 +290,11 @@ void create_sprite_waveform(sprites *spr){
     spr->waveform_background.fillSprite(TFT_BLACK);
     spr->waveform_background.pushSprite(0, 0);
 
+    spr->sample_rate.setColorDepth(8);
+    spr->sample_rate.createSprite(200, 20);
+    spr->sample_rate.setTextSize(1);
+    spr->sample_rate.fillSprite(TFT_BLACK);
+    spr->sample_rate.pushSprite(0, 40);
 
     display1 = true;
 

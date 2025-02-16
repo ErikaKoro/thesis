@@ -117,6 +117,9 @@ void lab_cleanup(mode previous_mode, sprites* tft_sprite, dac_continuous_handle_
         case WAVEFORM:
             // delete previous sprites
             tft_sprite->waveform.deleteSprite();
+            tft_sprite->sample_rate.deleteSprite();
+            tft_sprite->waveform_background.deleteSprite();
+
         break;
         
         case SINE_WAVE:
@@ -652,8 +655,10 @@ extern "C" void app_main(void) {
 
                 }
 
-                
+                tft_sprite.sample_rate.fillSprite(TFT_BLACK);
+                tft_sprite.sample_rate.drawString("Sample rate: " + String(1000000 / dynamic_sample_time) + " Hz", 0, 0);
 
+                tft_sprite.sample_rate.pushToSprite(&(tft_sprite.waveform_background), 100, 210, TFT_BLACK);
                 tft_sprite.waveform.pushToSprite(&(tft_sprite.waveform_background), 0, 0, TFT_BLACK);
                 tft_sprite.waveform_background.pushSprite(0, 0);
                 

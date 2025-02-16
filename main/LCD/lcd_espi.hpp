@@ -44,6 +44,7 @@ struct sprites{
 
     // waveform sprite
     TFT_eSprite waveform = TFT_eSprite(&tft);
+    TFT_eSprite sample_rate = TFT_eSprite(&tft);
     TFT_eSprite waveform_background = TFT_eSprite(&tft);
 
     // the starting pixel is the end of the written text
