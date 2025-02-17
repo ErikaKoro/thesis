@@ -97,8 +97,8 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
         vRmsSum += powerArrays->vCalibrated[i] * powerArrays->vCalibrated[i];
 
         stop = micros();
-
-        delayMicroseconds(time_delay - (stop - start));
+        if(stop - start < time_delay)
+            delayMicroseconds(time_delay - (stop - start));
 
         // rate = analogRead(ratePint);
         // rate = map(rate, 0, 4096, 250, 20000);
