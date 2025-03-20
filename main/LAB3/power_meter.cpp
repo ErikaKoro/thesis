@@ -30,7 +30,11 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
     powerMes powerMes;
 
     int nSamples = 120000 / time_delay;
-    
+    int vOffset;
+    int iOffset;
+    double vStep;
+    double iStep;
+
     int measure;
     int ret = adc_oneshot_read(adc1_handle, vPin, &measure);
     // uint16_t measure = analogRead(vPin);
@@ -44,13 +48,56 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
     double aRmsSum = 0;
     double powerSum = 0;
 
-    // Serial.println("Voltage: " + String(measure));
+    int max_v = 0;
+    int min_v = 4096;
+    int max_i = 0;
+    int min_i = 4096;
+
+    int vltg;
+    int crnt;
+
+    // measure the voltage for 20ms to calibrate the voltage signal
+    for (int i = 0; i < 200; i++){
+        start = micros();
+        
+        adc_oneshot_read(adc1_handle, vPin, &vltg);
+        adc_oneshot_read(adc1_handle, iPin, &crnt);
+
+        if (vltg > max_v)
+            max_v = vltg;
+        if (vltg < min_v)
+            min_v = vltg;
+
+        if (crnt > max_i)
+            max_i = crnt;
+        if (crnt < min_i)
+            min_i = crnt;
+
+        delayMicroseconds(100);
+    }
+
+    vOffset = (max_v + min_v) / 2;
+    iOffset = (max_i + min_i) / 2;
+
+    vStep = 34.78 / (max_v - min_v);
+    iStep = 0.398 / (max_i - min_i);
+
+    // Serial.println("vOffset: " + String(vOffset));
+    // Serial.println("iOffset: " + String(iOffset));
+    // Serial.println("max_v: " + String(max_v));
+    // Serial.println("min_v: " + String(min_v));
+    // Serial.println("max_i: " + String(max_i));
+    // Serial.println("min_i: " + String(min_i));
 
     start = micros();
 
+    // Serial.println("START========================");
+
     // The voltage signal has a decimal offset of 1885 that corresponds to 0V. Read the voltage pin until the measurement equals to the offset value.
-    while(measure > 1900 || measure < 1850){
+    while(measure > vOffset + 100 || measure < vOffset - 100){
         adc_oneshot_read(adc1_handle, vPin, &measure);
+
+        // Serial.println("Voltage: " + String(measure));
 
         stop = micros();
 
@@ -73,6 +120,8 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
         
     }
 
+    // Serial.println("STOP========================");
+
     int voltage;
     int current;
     double power;
@@ -83,9 +132,6 @@ powerMes power_meter(powerArrays *powerArrays, adc_oneshot_unit_handle_t adc1_ha
 
         adc_oneshot_read(adc1_handle, iPin, &current);
         adc_oneshot_read(adc1_handle, vPin, &voltage);
-
-        // powerArrays->cArray[i] = analogRead(iPin);
-        // powerArrays->vArray[i] = analogRead(vPin);
         
         powerArrays->vCalibrated[i] = (voltage - vOffset) * vStep;
         powerArrays->cCalibrated[i] = (current - iOffset) * iStep;

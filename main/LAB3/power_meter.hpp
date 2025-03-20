@@ -12,10 +12,10 @@
 // #define sample_time 250
 // #define nSamples 125000 / sample_time
 
-#define vOffset 1885
-#define vStep 0.0084
-#define iOffset 1137
-#define iStep 0.0009
+// #define vOffset 1444  // was 1885
+// #define vStep 0.0118  // adjust for each board until the voltage is 12
+// #define iOffset 1137
+// #define iStep 0.0008  // adjust for each board until the current is 0.14
 typedef struct{
     double activePower;
     double apparentPower;
